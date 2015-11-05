@@ -8,7 +8,7 @@ import java.util.Map;
 public class ProducerDefinition {
 
     private boolean sendBlocking = false;
-    private int messagesToSend = 10000;
+    private long messagesToSend = 10000;
     private String topic;
     private Map<String, Object> configs;
     private int messageSize = 1024;
@@ -37,11 +37,11 @@ public class ProducerDefinition {
         this.configs = configs;
     }
 
-    public int getMessagesToSend() {
+    public long getMessagesToSend() {
         return messagesToSend;
     }
 
-    public void setMessagesToSend(int messagesToSend) {
+    public void setMessagesToSend(long messagesToSend) {
         this.messagesToSend = messagesToSend;
     }
 

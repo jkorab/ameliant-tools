@@ -9,14 +9,6 @@ import java.util.Map;
  */
 public class ProducerConfigsBuilder {
 
-    public final static String BOOTSTRAP_SERVERS = "bootstrap.servers";
-    public final static String REQUEST_REQUIRED_ACKS = "request.required.acks";
-    public final static String PRODUCER_TYPE = "producer.type";
-    public final static String VALUE_SERIALIZER = "value.serializer";
-    public final static String KEY_SERIALIZER = "key.serializer";
-    public final static String BATCH_SIZE = "batch.size";
-
-
     private final Map<String, Object> producerConfigs;
 
     public ProducerConfigsBuilder() {
@@ -31,7 +23,7 @@ public class ProducerConfigsBuilder {
     }
 
     public ProducerConfigsBuilder bootstrapServers(String bootstrapServers) {
-        return new ProducerConfigsBuilder(this, BOOTSTRAP_SERVERS, bootstrapServers);
+        return new ProducerConfigsBuilder(this, "bootstrap.servers", bootstrapServers);
     }
 
     public enum RequestRequiredAcks {
@@ -51,7 +43,7 @@ public class ProducerConfigsBuilder {
     }
 
     public ProducerConfigsBuilder requestRequiredAcks(RequestRequiredAcks requestRequiredAcks) {
-        return new ProducerConfigsBuilder(this, REQUEST_REQUIRED_ACKS, requestRequiredAcks.getFlag());
+        return new ProducerConfigsBuilder(this, "request.required.acks", requestRequiredAcks.getFlag());
     }
 
     public enum ProducerType {
@@ -59,19 +51,19 @@ public class ProducerConfigsBuilder {
     }
 
     public ProducerConfigsBuilder producerType(ProducerType producerType) {
-        return new ProducerConfigsBuilder(this, PRODUCER_TYPE, producerType.toString());
+        return new ProducerConfigsBuilder(this, "producer.type", producerType.toString());
     }
 
     public ProducerConfigsBuilder valueSerializerClass(Class serializerClass) {
-        return new ProducerConfigsBuilder(this, VALUE_SERIALIZER, serializerClass.getCanonicalName());
+        return new ProducerConfigsBuilder(this, "value.serializer", serializerClass.getCanonicalName());
     }
 
     public ProducerConfigsBuilder keySerializerClass(Class serializerClass) {
-        return new ProducerConfigsBuilder(this, KEY_SERIALIZER, serializerClass.getCanonicalName());
+        return new ProducerConfigsBuilder(this, "key.serializer", serializerClass.getCanonicalName());
     }
 
     public ProducerConfigsBuilder batchSize(int batchSize) {
-        return new ProducerConfigsBuilder(this, BATCH_SIZE, Integer.toString(batchSize));
+        return new ProducerConfigsBuilder(this, "batch.size", Integer.toString(batchSize));
     }
 
     public Map<String, Object> build() {

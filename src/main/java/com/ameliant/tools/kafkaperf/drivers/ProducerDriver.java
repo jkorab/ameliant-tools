@@ -10,6 +10,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -20,10 +21,16 @@ public class ProducerDriver implements Runnable {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ProducerDefinition producerDefinition;
+    private CountDownLatch latch;
 
     ProducerDriver(ProducerDefinition producerDefinition) {
         Validate.notNull(producerDefinition, "producerDefinition is null");
         this.producerDefinition = producerDefinition;
+    }
+
+    public ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch latch) {
+        this(producerDefinition);
+        this.latch = latch;
     }
 
     public void run() {
@@ -35,7 +42,7 @@ public class ProducerDriver implements Runnable {
 
         String topic = producerDefinition.getTopic();
         Validate.notEmpty(topic, "topic is empty");
-        int messagesToSend = producerDefinition.getMessagesToSend();
+        long messagesToSend = producerDefinition.getMessagesToSend();
         Validate.isTrue(messagesToSend > 0, "messagesToSend must be greater than 0");
 
         log.info("Producing {} messages to {}", messagesToSend, topic);
@@ -70,6 +77,9 @@ public class ProducerDriver implements Runnable {
         log.info("Average throughput: {} msg/s", averageThroughput);
 
         producer.close();
+        if (latch != null) {
+            latch.countDown();
+        }
     }
 
     private String generateMessage(int messageSize) {
