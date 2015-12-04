@@ -7,6 +7,7 @@ import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedKafkaBroker;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -37,6 +38,9 @@ public class ConsumerDriverTest {
         Map<String, Object> configs = new ConsumerConfigsBuilder()
                 .groupId("bar")
                 .bootstrapServersConfig("127.0.0.1:" + zooKeeper.getPort())
+                .keyDeserializer(StringDeserializer.class)
+                .valueDeserializer(StringDeserializer.class)
+                .partitionAssignmentStrategy(ConsumerConfigsBuilder.PartitionAssignmentStrategy.range)
                 .build();
 
         String topic = "foo";
@@ -49,12 +53,18 @@ public class ConsumerDriverTest {
         // consumerDefinition.setZookeeperConnect("");
         consumerDefinition.setMessagesToReceive(messageCount);
 
-        // send in background
+        // TODO - send in background
         CountDownLatch latch = new CountDownLatch(2);
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        executor.submit(new ConsumerDriver(consumerDefinition, latch));
-        executor.submit(createProducerDriver(latch, topic, messageCount));
-        latch.await();
+
+        // fill up the topic
+        ProducerDriver producerDriver = createProducerDriver(latch, topic, messageCount);
+        producerDriver.run();
+
+        ConsumerDriver consumerDriver = new ConsumerDriver(consumerDefinition, latch);
+        consumerDriver.run();
+
+        latch.await(); // not really needed here
+        // TODO what's the impact of sharing a connection?
     }
 
     public ProducerDriver createProducerDriver(CountDownLatch latch, String topic, int messagesToSend) {

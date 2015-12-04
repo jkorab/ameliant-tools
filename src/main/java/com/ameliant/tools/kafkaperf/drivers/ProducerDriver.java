@@ -77,6 +77,7 @@ public class ProducerDriver implements Runnable {
         log.info("Average throughput: {} msg/s", averageThroughput);
 
         producer.close();
+        log.debug("Producer closed");
         if (latch != null) {
             latch.countDown();
         }

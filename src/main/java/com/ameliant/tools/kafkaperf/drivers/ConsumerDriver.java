@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -32,8 +33,8 @@ public class ConsumerDriver implements Runnable {
 
     @Override
     public void run() {
-        KafkaConsumer<byte[], byte[]> consumer =
-                new KafkaConsumer<>(consumerDefinition.getConfigs()); // FIXME pausing here
+        Map<String, Object> configs = consumerDefinition.getConfigs();
+        KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(configs); // FIXME pausing here
 
         String topic = consumerDefinition.getTopic();
         log.info("Subscribing to {}", topic);
@@ -48,11 +49,15 @@ public class ConsumerDriver implements Runnable {
 
         do {
             Map<String, ConsumerRecords<byte[], byte[]>> records = consumer.poll(consumerDefinition.getPollTimeout());
-            recordsFetched += records.entrySet().stream()
-                    .map(action -> {
-                        List<ConsumerRecord<byte[], byte[]>> records1 = action.getValue().records();
-                        return records1.stream().count();
-                    }).reduce(0l, (total, recordCount) -> total + recordCount);
+            if (records == null) {
+                log.info("null records polled");
+            } else {
+                recordsFetched += records.entrySet().stream()
+                        .map(action -> {
+                            List<ConsumerRecord<byte[], byte[]>> records1 = action.getValue().records();
+                            return records1.size();
+                        }).reduce(0, (total, recordCount) -> total + recordCount);
+            }
 
             stopWatch.split();
         } while ((recordsFetched < messagesToReceive)

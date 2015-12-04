@@ -1,6 +1,9 @@
 package com.ameliant.tools.kafkaperf.config;
 
+import org.apache.commons.lang.Validate;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,4 +50,23 @@ public class ConsumerConfigsBuilder {
     public Map<String, Object> build() {
         return consumerConfigs;
     }
+
+    public ConsumerConfigsBuilder keyDeserializer(Class<? extends Deserializer> keyDeserializerClass) {
+        Validate.notNull(keyDeserializerClass, "keyDeserializerClass is null");
+        return new ConsumerConfigsBuilder(this, "key.deserializer", keyDeserializerClass.getCanonicalName());
+    }
+
+    public ConsumerConfigsBuilder valueDeserializer(Class<? extends Deserializer> valueDeserializerClass) {
+        Validate.notNull(valueDeserializerClass, "valueDeserializerClass is null");
+        return new ConsumerConfigsBuilder(this, "value.deserializer", valueDeserializerClass.getCanonicalName());
+    }
+
+    public enum PartitionAssignmentStrategy {
+        range, roundrobin;
+    }
+
+    public ConsumerConfigsBuilder partitionAssignmentStrategy(PartitionAssignmentStrategy partitionAssignmentStrategy) {
+        return new ConsumerConfigsBuilder(this, "partition.assignment.strategy", partitionAssignmentStrategy.name());
+    }
+
 }
