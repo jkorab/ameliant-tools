@@ -2,8 +2,8 @@ package com.ameliant.tools.kafkaperf.config;
 
 import org.apache.commons.lang.Validate;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.internals.PartitionAssignor;
 import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class ConsumerConfigsBuilder {
         consumerConfigs.put(key, value);
     }
 
-    public ConsumerConfigsBuilder bootstrapServersConfig(String bootstrapServersConfig) {
+    public ConsumerConfigsBuilder bootstrapServers(String bootstrapServersConfig) {
         return new ConsumerConfigsBuilder(this, ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServersConfig);
     }
 
@@ -40,11 +40,19 @@ public class ConsumerConfigsBuilder {
     }
 
     public ConsumerConfigsBuilder groupId(String groupId) {
-        return new ConsumerConfigsBuilder(this, "group.id", groupId);
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.GROUP_ID_CONFIG, groupId);
     }
 
     public ConsumerConfigsBuilder autoCommitIntervalMs(long autoCommitIntervalMs) {
-        return new ConsumerConfigsBuilder(this, "auto.commit.interval.ms", Long.toString(autoCommitIntervalMs));
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, Long.toString(autoCommitIntervalMs));
+    }
+
+    public ConsumerConfigsBuilder enableAutoCommit(boolean enableAutoCommit) {
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, Boolean.toString(enableAutoCommit));
+    }
+
+    public ConsumerConfigsBuilder sessionTimeoutMs(long sessionTimeoutMs) {
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, Long.toString(sessionTimeoutMs));
     }
 
     public Map<String, Object> build() {
@@ -61,12 +69,8 @@ public class ConsumerConfigsBuilder {
         return new ConsumerConfigsBuilder(this, "value.deserializer", valueDeserializerClass.getCanonicalName());
     }
 
-    public enum PartitionAssignmentStrategy {
-        range, roundrobin;
-    }
-
-    public ConsumerConfigsBuilder partitionAssignmentStrategy(PartitionAssignmentStrategy partitionAssignmentStrategy) {
-        return new ConsumerConfigsBuilder(this, "partition.assignment.strategy", partitionAssignmentStrategy.name());
+    public ConsumerConfigsBuilder partitionAssignmentStrategy(Class<? extends PartitionAssignor> partitionAssignmentStrategy) {
+        return new ConsumerConfigsBuilder(this, "partition.assignment.strategy", partitionAssignmentStrategy.getCanonicalName());
     }
 
 }

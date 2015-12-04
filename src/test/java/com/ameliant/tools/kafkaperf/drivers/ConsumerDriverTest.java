@@ -6,15 +6,14 @@ import com.ameliant.tools.kafkaperf.config.ProducerConfigsBuilder;
 import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedKafkaBroker;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
+import org.apache.kafka.clients.consumer.RangeAssignor;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
 
@@ -37,10 +36,12 @@ public class ConsumerDriverTest {
 
         Map<String, Object> configs = new ConsumerConfigsBuilder()
                 .groupId("bar")
-                .bootstrapServersConfig("127.0.0.1:" + zooKeeper.getPort())
-                .keyDeserializer(StringDeserializer.class)
-                .valueDeserializer(StringDeserializer.class)
-                .partitionAssignmentStrategy(ConsumerConfigsBuilder.PartitionAssignmentStrategy.range)
+                .bootstrapServers("127.0.0.1:" + broker.getPort())
+                .enableAutoCommit(true)
+                .autoCommitIntervalMs(1000)
+                .sessionTimeoutMs(30000)
+                .keyDeserializer(ByteArrayDeserializer.class)
+                .valueDeserializer(ByteArrayDeserializer.class)
                 .build();
 
         String topic = "foo";

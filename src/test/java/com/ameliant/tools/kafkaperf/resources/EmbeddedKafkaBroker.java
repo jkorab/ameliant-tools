@@ -10,6 +10,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Some;
+import scala.Some$;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,7 +98,7 @@ public class EmbeddedKafkaBroker extends ExternalResource {
     protected void before() throws Throwable {
         logDirectory = tempDir(perTest("kafka-log"));
         properties.setProperty("log.dir", logDirectory.getCanonicalPath());
-        kafkaServer = new KafkaServer(new KafkaConfig(properties), SystemTime$.MODULE$);
+        kafkaServer = new KafkaServer(new KafkaConfig(properties), SystemTime$.MODULE$, Some$.MODULE$.apply("kafkaServer"));
         kafkaServer.startup();
     }
 

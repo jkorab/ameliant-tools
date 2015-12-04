@@ -7,10 +7,10 @@ import org.apache.kafka.clients.consumer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.StreamSupport;
 
 /**
  * @author jkorab
@@ -34,11 +34,11 @@ public class ConsumerDriver implements Runnable {
     @Override
     public void run() {
         Map<String, Object> configs = consumerDefinition.getConfigs();
-        KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(configs); // FIXME pausing here
+        KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(configs);
 
         String topic = consumerDefinition.getTopic();
         log.info("Subscribing to {}", topic);
-        consumer.subscribe(topic);
+        consumer.subscribe(Collections.singletonList(topic));
 
         long recordsFetched = 0;
         long messagesToReceive = consumerDefinition.getMessagesToReceive();
@@ -48,15 +48,13 @@ public class ConsumerDriver implements Runnable {
         stopWatch.start();
 
         do {
-            Map<String, ConsumerRecords<byte[], byte[]>> records = consumer.poll(consumerDefinition.getPollTimeout());
+            ConsumerRecords<byte[], byte[]> records = consumer.poll(consumerDefinition.getPollTimeout());
             if (records == null) {
                 log.info("null records polled");
             } else {
-                recordsFetched += records.entrySet().stream()
-                        .map(action -> {
-                            List<ConsumerRecord<byte[], byte[]>> records1 = action.getValue().records();
-                            return records1.size();
-                        }).reduce(0, (total, recordCount) -> total + recordCount);
+                for (ConsumerRecord<byte[], byte[]> record : records) {
+                   recordsFetched += 1;
+                }
             }
 
             stopWatch.split();
