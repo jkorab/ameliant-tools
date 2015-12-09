@@ -12,8 +12,10 @@ To run:
 The tool accepts a single argument, which is the location of a JSON config file that details
 the behaviour of the producers and consumers (collectively referred to as clients).
 
-Since Kafka clients each need their over Kafka config (a bag of properties for which you need
-to look at [the manual](http://kafka.apache.org/documentation.html)), the config format supports overrides to keep the config nice and DRY.
+Since Kafka clients each need their own Kafka config (a bag of properties for which you need
+to look at [the manual](http://kafka.apache.org/documentation.html#configuration)),
+the config format supports overrides to keep the file nice and DRY - and to keep you sane :)
+
 Lower-lever config is merged with, and in the process overrides, config defined at a higher-level.
 
 Sample config is as follows (pseudo-JSON, as it normally doesn't support comments):
