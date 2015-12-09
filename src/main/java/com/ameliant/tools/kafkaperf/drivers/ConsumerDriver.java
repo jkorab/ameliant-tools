@@ -10,12 +10,12 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.StreamSupport;
 
 /**
+ * TODO add graceful shutdown logic
  * @author jkorab
  */
-public class ConsumerDriver implements Runnable {
+public class ConsumerDriver implements Driver {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ConsumerDefinition consumerDefinition;

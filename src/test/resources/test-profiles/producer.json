@@ -1,0 +1,19 @@
+{
+  "producers" : [
+    {
+      "configs" : {
+        "bootstrap.servers" : "tcp://localhost:2181",
+        "request.required.acks" : "ackFromLeader",
+        "producer.type" : "sync",
+        "timeout.ms" : "10000",
+        "key.serializer" : "org.apache.kafka.common.serialization.ByteArraySerializer",
+        "value.serializer" : "org.apache.kafka.common.serialization.ByteArraySerializer",
+        "batch.size" : "0"
+      },
+      "topic" : "foo",
+      "messagesToSend" : "1000",
+      "sendBlocking": "false",
+      "messageSize" : "100000"
+    }
+  ]
+}

@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
 /**
  * @author jkorab
  */
-public class ProducerDriver implements Runnable {
+public class ProducerDriver implements Driver {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ProducerDefinition producerDefinition;
@@ -47,6 +47,10 @@ public class ProducerDriver implements Runnable {
 
         log.info("Producing {} messages to {}", messagesToSend, topic);
         for (int i = 0; i < messagesToSend; i++) {
+            if (shutDown.get()) {
+                break;
+            }
+
             ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, message.getBytes());
 
             if (producerDefinition.isSendBlocking()) {
@@ -69,12 +73,16 @@ public class ProducerDriver implements Runnable {
             }
         }
 
-        stopWatch.stop();
-        long runTime = stopWatch.getTime();
-        log.info("Done. Producer finished sending {} msgs in {} ms", messagesToSend, runTime);
+        if (shutDown.get()) {
+            log.info("Forced shutdown");
+        } else {
+            stopWatch.stop();
+            long runTime = stopWatch.getTime();
+            log.info("Done. Producer finished sending {} msgs in {} ms", messagesToSend, runTime);
 
-        double averageThroughput = (1000d / runTime) * messagesToSend;
-        log.info("Average throughput: {} msg/s", averageThroughput);
+            double averageThroughput = (1000d / runTime) * messagesToSend;
+            log.info("Average throughput: {} msg/s", averageThroughput);
+        }
 
         producer.close();
         log.debug("Producer closed");
