@@ -14,7 +14,8 @@ public class ConsumerDefinition {
     private String zookeeperConnect;
     private String consumerGroupId;
     private Map<String, Object> configs;
-    private long pollTimeout = 30 * 1000;
+    private long pollTimeout = 1000;
+    private int reportReceivedEvery = 1000;
 
     private long testRunTimeout = Long.MAX_VALUE;
 
@@ -74,4 +75,11 @@ public class ConsumerDefinition {
         this.testRunTimeout = testRunTimeout;
     }
 
+    public int getReportReceivedEvery() {
+        return reportReceivedEvery;
+    }
+
+    public void setReportReceivedEvery(int reportReceivedEvery) {
+        this.reportReceivedEvery = reportReceivedEvery;
+    }
 }

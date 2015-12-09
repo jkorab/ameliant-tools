@@ -2,6 +2,7 @@ package com.ameliant.tools.kafkaperf.config;
 
 import org.apache.commons.lang.Validate;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.clients.consumer.internals.PartitionAssignor;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -73,4 +74,11 @@ public class ConsumerConfigsBuilder {
         return new ConsumerConfigsBuilder(this, "partition.assignment.strategy", partitionAssignmentStrategy.getCanonicalName());
     }
 
+    public enum OffsetReset {
+        earliest, latest, none;
+    }
+
+    public ConsumerConfigsBuilder autoOffsetReset(OffsetReset offsetReset) {
+        return new ConsumerConfigsBuilder(this, "auto.offset.reset", offsetReset.toString());
+    }
 }

@@ -50,10 +50,22 @@ public class ConsumerDriver implements Runnable {
         do {
             ConsumerRecords<byte[], byte[]> records = consumer.poll(consumerDefinition.getPollTimeout());
             if (records == null) {
-                log.info("null records polled");
+                throw new IllegalStateException("null ConsumerRecords polled");
             } else {
-                for (ConsumerRecord<byte[], byte[]> record : records) {
-                   recordsFetched += 1;
+                if (records.count() == 0) {
+                    try {
+                        log.info("No records fetched, pausing");
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    for (ConsumerRecord<byte[], byte[]> record : records) {
+                        recordsFetched += 1;
+                        if (recordsFetched % consumerDefinition.getReportReceivedEvery() == 0) {
+                            log.info("Received {} messages", recordsFetched);
+                        }
+                    }
                 }
             }
 

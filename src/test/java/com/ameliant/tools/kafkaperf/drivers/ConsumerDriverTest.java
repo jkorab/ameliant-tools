@@ -6,7 +6,6 @@ import com.ameliant.tools.kafkaperf.config.ProducerConfigsBuilder;
 import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedKafkaBroker;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
-import org.apache.kafka.clients.consumer.RangeAssignor;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Rule;
@@ -14,6 +13,8 @@ import org.junit.Test;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.lang.String.format;
 
@@ -32,8 +33,42 @@ public class ConsumerDriverTest {
             .build();
 
     @Test
-    public void testReceive() throws InterruptedException {
+    public void testReceive_sequential() throws InterruptedException {
+        String topic = "foo";
+        int messageCount = 10000;
 
+        CountDownLatch latch = new CountDownLatch(2);
+
+        // fill up the topic
+        ProducerDriver producerDriver = createProducerDriver(latch, topic, messageCount);
+        producerDriver.run();
+
+        ConsumerDriver consumerDriver = createConsumerDriver(latch, topic, messageCount);
+        consumerDriver.run();
+
+        latch.await(); // not really needed here
+    }
+
+    @Test
+    public void testReceive_parallel() throws InterruptedException {
+        String topic = "foo";
+        int messageCount = 10000;
+
+        int numWorkers = 2;
+        CountDownLatch latch = new CountDownLatch(numWorkers);
+        ExecutorService executorService = Executors.newFixedThreadPool(numWorkers);
+
+        // fill up the topic
+        ConsumerDriver consumerDriver = createConsumerDriver(latch, topic, messageCount);
+        executorService.submit(consumerDriver);
+
+        ProducerDriver producerDriver = createProducerDriver(latch, topic, messageCount);
+        executorService.submit(producerDriver);
+
+        latch.await();
+    }
+
+    private ConsumerDriver createConsumerDriver(CountDownLatch latch, String topic, int messageCount) {
         Map<String, Object> configs = new ConsumerConfigsBuilder()
                 .groupId("bar")
                 .bootstrapServers("127.0.0.1:" + broker.getPort())
@@ -42,47 +77,31 @@ public class ConsumerDriverTest {
                 .sessionTimeoutMs(30000)
                 .keyDeserializer(ByteArrayDeserializer.class)
                 .valueDeserializer(ByteArrayDeserializer.class)
+                .autoOffsetReset(ConsumerConfigsBuilder.OffsetReset.earliest)
                 .build();
-
-        String topic = "foo";
-        int messageCount = 10000;
 
         ConsumerDefinition consumerDefinition = new ConsumerDefinition();
         consumerDefinition.setConfigs(configs);
         consumerDefinition.setTopic(topic);
-        // consumerDefinition.setConsumerGroupId("bar");
-        // consumerDefinition.setZookeeperConnect("");
         consumerDefinition.setMessagesToReceive(messageCount);
-
-        // TODO - send in background
-        CountDownLatch latch = new CountDownLatch(2);
-
-        // fill up the topic
-        ProducerDriver producerDriver = createProducerDriver(latch, topic, messageCount);
-        producerDriver.run();
-
-        ConsumerDriver consumerDriver = new ConsumerDriver(consumerDefinition, latch);
-        consumerDriver.run();
-
-        latch.await(); // not really needed here
-        // TODO what's the impact of sharing a connection?
+        return new ConsumerDriver(consumerDefinition, latch);
     }
 
-    public ProducerDriver createProducerDriver(CountDownLatch latch, String topic, int messagesToSend) {
+    public ProducerDriver createProducerDriver(CountDownLatch latch, String topic, int messageCount) {
         Map<String, Object> producerConfigs = new ProducerConfigsBuilder()
-                .bootstrapServers(format("127.0.0.1:%s", broker.getPort()))
+                .bootstrapServers("127.0.0.1:" + broker.getPort())
                 .requestRequiredAcks(ProducerConfigsBuilder.RequestRequiredAcks.ackFromLeader)
                 .producerType(ProducerConfigsBuilder.ProducerType.sync)
-                .keySerializerClass(ByteArraySerializer.class)
-                .valueSerializerClass(ByteArraySerializer.class)
+                .keySerializer(ByteArraySerializer.class)
+                .valueSerializer(ByteArraySerializer.class)
                 .batchSize(0)
                 .build();
 
         ProducerDefinition producerDefinition = new ProducerDefinition();
         producerDefinition.setConfigs(producerConfigs);
         producerDefinition.setTopic(topic);
-        producerDefinition.setMessageSize(1024);
-        producerDefinition.setMessagesToSend(messagesToSend);
+        producerDefinition.setMessageSize(100 * 1024);
+        producerDefinition.setMessagesToSend(messageCount);
         producerDefinition.setSendBlocking(true);
 
         return new ProducerDriver(producerDefinition, latch);

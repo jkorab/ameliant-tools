@@ -54,11 +54,11 @@ public class ProducerConfigsBuilder {
         return new ProducerConfigsBuilder(this, "producer.type", producerType.toString());
     }
 
-    public ProducerConfigsBuilder valueSerializerClass(Class serializerClass) {
+    public ProducerConfigsBuilder valueSerializer(Class serializerClass) {
         return new ProducerConfigsBuilder(this, "value.serializer", serializerClass.getCanonicalName());
     }
 
-    public ProducerConfigsBuilder keySerializerClass(Class serializerClass) {
+    public ProducerConfigsBuilder keySerializer(Class serializerClass) {
         return new ProducerConfigsBuilder(this, "key.serializer", serializerClass.getCanonicalName());
     }
 

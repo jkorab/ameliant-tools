@@ -31,8 +31,8 @@ public class ProducerDriverTest {
                 .bootstrapServers(format("127.0.0.1:%s", broker.getPort()))
                 .requestRequiredAcks(ProducerConfigsBuilder.RequestRequiredAcks.ackFromLeader)
                 .producerType(ProducerConfigsBuilder.ProducerType.sync)
-                .keySerializerClass(ByteArraySerializer.class)
-                .valueSerializerClass(ByteArraySerializer.class)
+                .keySerializer(ByteArraySerializer.class)
+                .valueSerializer(ByteArraySerializer.class)
                 .batchSize(0)
                 .build();
 
