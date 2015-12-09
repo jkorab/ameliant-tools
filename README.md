@@ -21,6 +21,8 @@ Lower-lever config is merged with, and in the process overrides, config defined 
 Sample config is as follows (pseudo-JSON, as it normally doesn't support comments):
 
     {
+      // Beware: this format will change in the near future!!!
+
       "configs" : { // defines Kafka config properties
         "global" : { // applies to both consumers and producers
           "bootstrap.servers" : "tcp://localhost:2181"

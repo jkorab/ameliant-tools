@@ -1,0 +1,23 @@
+{
+  "README" : "THIS IS A WORK IN PROGRESS, IT DOESN'T WORK YET!!!",
+
+  "producers" : {
+    "config" : {
+      "bootstrap.servers" : "tcp://localhost:2181",
+      "request.required.acks": "ackFromLeader",
+      "producer.type": "sync",
+      "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "value.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "batch.size": "0",
+      "timeout.ms" : "10000"
+    },
+    "instances" : [
+      {
+        "topic" : "foo",
+        "messagesToSend" : "1000",
+        "sendBlocking": "false",
+        "messageSize" : "100000"
+      }
+    ]
+  }
+}

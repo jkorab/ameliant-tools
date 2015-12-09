@@ -1,0 +1,48 @@
+{
+  "README" : "THIS IS A WORK IN PROGRESS, IT DOESN'T WORK YET!!!",
+
+  "config" : {
+    "bootstrap.servers" : "tcp://localhost:2181"
+  },
+  "producers" : {
+    "config" : {
+      "request.required.acks": "ackFromLeader",
+      "producer.type": "sync",
+      "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "value.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "batch.size": "0",
+      "timeout.ms" : "10000"
+    },
+    "instances" : [
+      {
+        "config" : {
+          "timeout.ms" : "5000"
+        },
+        "topic" : "foo",
+        "messagesToSend" : "1000",
+        "sendBlocking": "false",
+        "messageSize" : "100000"
+      },
+      {
+        "topic" : "bar",
+        "messagesToSend" : "200",
+        "sendBlocking": "true",
+        "messageSize" : "10000"
+      }
+    ]
+  },
+  "consumers" : {
+    "config" : {
+      "timeout.ms" : "5000"
+    },
+    "instances" : [
+      {
+        "config" : {
+          "timeout.ms" : "5000"
+        },
+        "topic" : "foo",
+        "consumerGroupId" : "bar"
+      }
+    ]
+  }
+}
