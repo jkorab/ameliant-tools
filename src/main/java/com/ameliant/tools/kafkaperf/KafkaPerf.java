@@ -13,8 +13,16 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Hello world!
+ * Performance test main class. The tool allows you to run multiple consumers and producers
+ * at the same time against one or more Kafka clusters.
  *
+ * This class takes a JSON config file location as an argument, which it translates into an
+ * object graph representing the test profile ({@link com.ameliant.tools.kafkaperf.config.TestProfileDefinition}).
+ *
+ * The test profile is then executed by a {@link com.ameliant.tools.kafkaperf.drivers.TestProfileRunner},
+ * which runs each of the producers and consumers in their own threads.
+ *
+ * @author jkorab
  */
 public class KafkaPerf {
 
@@ -40,12 +48,12 @@ public class KafkaPerf {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 TestProfileDefinition testProfileDefinition = mapper.readValue(new File(config), TestProfileDefinition.class);
-                TestProfileRunner driver = new TestProfileRunner(testProfileDefinition);
+                TestProfileRunner testProfileRunner = new TestProfileRunner(testProfileDefinition);
 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(mapper.writeValueAsString(testProfileDefinition));
                 }
-                driver.run(); // TODO implement test reporting
+                testProfileRunner.run(); // TODO implement test reporting
             } catch (JsonMappingException | JsonParseException e) {
                 errorMessage = "Unable to parse " + config + ": " + e.getOriginalMessage();
                 displayHelp = true;
@@ -56,7 +64,6 @@ public class KafkaPerf {
         } catch (ParseException e) {
             displayHelp = true;
         }
-
 
         if (displayHelp) {
             HelpFormatter formatter = new HelpFormatter();

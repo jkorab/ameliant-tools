@@ -7,10 +7,14 @@ import java.util.Map;
  */
 public class ProducerDefinition {
 
+    /**
+     * A map of Kafka config properties.
+     */
+    private Map<String, Object> configs;
+
     private boolean sendBlocking = false;
     private long messagesToSend = 10000;
     private String topic;
-    private Map<String, Object> configs;
     private int messageSize = 1024;
 
     public String getTopic() {

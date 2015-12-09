@@ -3,18 +3,19 @@
     "global" : {
       "bootstrap.servers" : "tcp://localhost:2181"
     },
-    "producer" : {
+    "producers" : {
       "request.required.acks": "ackFromLeader",
       "producer.type": "sync",
       "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
       "value.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
-      "batch.size": "0"
+      "batch.size": "0",
+      "timeout.ms" : "10000"
     }
   },
   "producers" : [
     {
       "configs" : {
-        "timeout.ms" : "10000"
+        "timeout.ms" : "5000"
       },
       "topic" : "foo",
       "messagesToSend" : "1000",

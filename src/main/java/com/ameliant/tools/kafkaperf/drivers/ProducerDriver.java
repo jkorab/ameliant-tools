@@ -28,7 +28,7 @@ public class ProducerDriver implements Driver {
         this.producerDefinition = producerDefinition;
     }
 
-    public ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch latch) {
+    ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch latch) {
         this(producerDefinition);
         this.latch = latch;
     }

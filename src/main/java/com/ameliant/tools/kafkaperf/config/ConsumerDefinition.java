@@ -2,6 +2,7 @@ package com.ameliant.tools.kafkaperf.config;
 
 import org.apache.kafka.common.serialization.Deserializer;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -9,11 +10,15 @@ import java.util.Map;
  */
 public class ConsumerDefinition {
 
+    /**
+     * A map of Kafka config properties.
+     */
+    private Map<String, Object> configs = new HashMap<>();
+
     private String topic;
     private long messagesToReceive = 10000;
     private String zookeeperConnect;
     private String consumerGroupId;
-    private Map<String, Object> configs;
     private long pollTimeout = 1000;
     private int reportReceivedEvery = 1000;
 

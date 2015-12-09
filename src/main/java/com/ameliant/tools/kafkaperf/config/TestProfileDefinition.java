@@ -10,6 +10,8 @@ public class TestProfileDefinition {
 
     private int maxDuration = 30; // seconds
 
+    private ConfigsDefinition configs = new ConfigsDefinition();
+
     private List<ProducerDefinition> producers = new ArrayList<>();
     private List<ConsumerDefinition> consumers = new ArrayList<>();
 
@@ -35,5 +37,13 @@ public class TestProfileDefinition {
 
     public void setMaxDuration(int maxDuration) {
         this.maxDuration = maxDuration;
+    }
+
+    public ConfigsDefinition getConfigs() {
+        return configs;
+    }
+
+    public void setConfigs(ConfigsDefinition configs) {
+        this.configs = configs;
     }
 }
