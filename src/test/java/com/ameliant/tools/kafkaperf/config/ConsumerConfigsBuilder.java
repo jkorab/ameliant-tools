@@ -2,7 +2,6 @@ package com.ameliant.tools.kafkaperf.config;
 
 import org.apache.commons.lang.Validate;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.clients.consumer.internals.PartitionAssignor;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -32,14 +31,6 @@ public class ConsumerConfigsBuilder {
         return new ConsumerConfigsBuilder(this, ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServersConfig);
     }
 
-    public ConsumerConfigsBuilder zookeeperSessionTimeoutMs(long zookeeperSessionTimeoutMs) {
-        return new ConsumerConfigsBuilder(this, "zookeeper.session.timeout.ms", Long.toString(zookeeperSessionTimeoutMs));
-    }
-
-    public ConsumerConfigsBuilder zookeeperSyncTimeMs(long zookeeperSyncTimeMs) {
-        return new ConsumerConfigsBuilder(this, "zookeeper.sync.time.ms", Long.toString(zookeeperSyncTimeMs));
-    }
-
     public ConsumerConfigsBuilder groupId(String groupId) {
         return new ConsumerConfigsBuilder(this, ConsumerConfig.GROUP_ID_CONFIG, groupId);
     }
@@ -62,16 +53,16 @@ public class ConsumerConfigsBuilder {
 
     public ConsumerConfigsBuilder keyDeserializer(Class<? extends Deserializer> keyDeserializerClass) {
         Validate.notNull(keyDeserializerClass, "keyDeserializerClass is null");
-        return new ConsumerConfigsBuilder(this, "key.deserializer", keyDeserializerClass.getCanonicalName());
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClass.getCanonicalName());
     }
 
     public ConsumerConfigsBuilder valueDeserializer(Class<? extends Deserializer> valueDeserializerClass) {
         Validate.notNull(valueDeserializerClass, "valueDeserializerClass is null");
-        return new ConsumerConfigsBuilder(this, "value.deserializer", valueDeserializerClass.getCanonicalName());
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClass.getCanonicalName());
     }
 
     public ConsumerConfigsBuilder partitionAssignmentStrategy(Class<? extends PartitionAssignor> partitionAssignmentStrategy) {
-        return new ConsumerConfigsBuilder(this, "partition.assignment.strategy", partitionAssignmentStrategy.getCanonicalName());
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, partitionAssignmentStrategy.getCanonicalName());
     }
 
     public enum OffsetReset {
@@ -79,6 +70,6 @@ public class ConsumerConfigsBuilder {
     }
 
     public ConsumerConfigsBuilder autoOffsetReset(OffsetReset offsetReset) {
-        return new ConsumerConfigsBuilder(this, "auto.offset.reset", offsetReset.toString());
+        return new ConsumerConfigsBuilder(this, ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offsetReset.toString());
     }
 }

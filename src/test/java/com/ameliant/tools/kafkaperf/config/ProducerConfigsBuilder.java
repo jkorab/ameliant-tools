@@ -1,5 +1,8 @@
 package com.ameliant.tools.kafkaperf.config;
 
+
+import org.apache.kafka.clients.producer.ProducerConfig;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +26,7 @@ public class ProducerConfigsBuilder {
     }
 
     public ProducerConfigsBuilder bootstrapServers(String bootstrapServers) {
-        return new ProducerConfigsBuilder(this, "bootstrap.servers", bootstrapServers);
+        return new ProducerConfigsBuilder(this, ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     }
 
     public enum RequestRequiredAcks {
@@ -43,6 +46,7 @@ public class ProducerConfigsBuilder {
     }
 
     public ProducerConfigsBuilder requestRequiredAcks(RequestRequiredAcks requestRequiredAcks) {
+        // TODO check if still valid
         return new ProducerConfigsBuilder(this, "request.required.acks", requestRequiredAcks.getFlag());
     }
 
@@ -51,19 +55,20 @@ public class ProducerConfigsBuilder {
     }
 
     public ProducerConfigsBuilder producerType(ProducerType producerType) {
+        // TODO check if still valid
         return new ProducerConfigsBuilder(this, "producer.type", producerType.toString());
     }
 
     public ProducerConfigsBuilder valueSerializer(Class serializerClass) {
-        return new ProducerConfigsBuilder(this, "value.serializer", serializerClass.getCanonicalName());
+        return new ProducerConfigsBuilder(this, ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, serializerClass.getCanonicalName());
     }
 
     public ProducerConfigsBuilder keySerializer(Class serializerClass) {
-        return new ProducerConfigsBuilder(this, "key.serializer", serializerClass.getCanonicalName());
+        return new ProducerConfigsBuilder(this, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, serializerClass.getCanonicalName());
     }
 
     public ProducerConfigsBuilder batchSize(int batchSize) {
-        return new ProducerConfigsBuilder(this, "batch.size", Integer.toString(batchSize));
+        return new ProducerConfigsBuilder(this, ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(batchSize));
     }
 
     public Map<String, Object> build() {
