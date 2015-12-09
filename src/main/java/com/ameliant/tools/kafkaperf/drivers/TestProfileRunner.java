@@ -1,16 +1,15 @@
 package com.ameliant.tools.kafkaperf.drivers;
 
+import com.ameliant.tools.kafkaperf.config.ConfigsDefinition;
 import com.ameliant.tools.kafkaperf.config.ConsumerDefinition;
 import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
 import com.ameliant.tools.kafkaperf.config.TestProfileDefinition;
-import com.ameliant.tools.kafkaperf.drivers.ConsumerDriver;
-import com.ameliant.tools.kafkaperf.drivers.Driver;
-import com.ameliant.tools.kafkaperf.drivers.ProducerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,7 +29,6 @@ public class TestProfileRunner {
     }
 
     public void run() {
-        // TODO implement cascading configs override
         ArrayList<Driver> drivers = new ArrayList<>();
 
         int driverCount = 0;
@@ -43,12 +41,18 @@ public class TestProfileRunner {
         log.debug("Latching {} drivers", driverCount);
         CountDownLatch latch = new CountDownLatch(driverCount);
 
+        ConfigsDefinition configs = testProfileDefinition.getConfigs();
+        Map<String, Object> producerOverGlobal = configs.getProducerOverGlobal();
+        Map<String, Object> consumerOverGlobal = configs.getConsumerOverGlobal();
+
         drivers.addAll(producerDefinitions.stream()
-                .map(producerDefinition -> new ProducerDriver(producerDefinition, latch))
+                .map(producerDefinition -> new ProducerDriver(
+                        producerDefinition.withParentConfigs(producerOverGlobal), latch))
                 .collect(Collectors.toList()));
 
         drivers.addAll(consumerDefinitions.stream()
-                .map(consumerDefinition -> new ConsumerDriver(consumerDefinition, latch))
+                .map(consumerDefinition -> new ConsumerDriver(
+                        consumerDefinition.withParentConfigs(consumerOverGlobal), latch))
                 .collect(Collectors.toList()));
 
         ExecutorService executorService = Executors.newFixedThreadPool(driverCount);

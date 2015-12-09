@@ -1,5 +1,6 @@
 package com.ameliant.tools.kafkaperf.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -10,12 +11,32 @@ public class ProducerDefinition {
     /**
      * A map of Kafka config properties.
      */
-    private Map<String, Object> configs;
+    private Map<String, Object> configs = new HashMap<>();
 
     private boolean sendBlocking = false;
     private long messagesToSend = 10000;
     private String topic;
     private int messageSize = 1024;
+
+    // Required for Jackson
+    public ProducerDefinition() {}
+
+    // Copy constructor
+    private ProducerDefinition(Map<String, Object> configs, int messageSize, long messagesToSend, boolean sendBlocking, String topic) {
+        this.configs = configs;
+        this.messageSize = messageSize;
+        this.messagesToSend = messagesToSend;
+        this.sendBlocking = sendBlocking;
+        this.topic = topic;
+    }
+
+    public Map<String, Object> getConfigs() {
+        return configs;
+    }
+
+    public void setConfigs(Map<String, Object> configs) {
+        this.configs = configs;
+    }
 
     public String getTopic() {
         return topic;
@@ -33,14 +54,6 @@ public class ProducerDefinition {
         this.sendBlocking = sendBlocking;
     }
 
-    public Map<String, Object> getConfigs() {
-        return configs;
-    }
-
-    public void setConfigs(Map<String, Object> configs) {
-        this.configs = configs;
-    }
-
     public long getMessagesToSend() {
         return messagesToSend;
     }
@@ -55,5 +68,12 @@ public class ProducerDefinition {
 
     public void setMessageSize(int messageSize) {
         this.messageSize = messageSize;
+    }
+
+    public ProducerDefinition withParentConfigs(Map<String, Object> parentConfigs) {
+        Map<String, Object> mergedConfig = ConfigMerger.merge(parentConfigs, configs);
+
+        return new ProducerDefinition(mergedConfig,
+                messageSize, messagesToSend, sendBlocking, topic);
     }
 }

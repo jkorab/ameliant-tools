@@ -21,6 +21,13 @@
       "messagesToSend" : "1000",
       "sendBlocking": "false",
       "messageSize" : "100000"
+    },
+    {
+      "topic" : "bar",
+      "messagesToSend" : "200",
+      "sendBlocking": "true",
+      "messageSize" : "10000"
     }
+
   ]
 }

@@ -1,5 +1,7 @@
 package com.ameliant.tools.kafkaperf.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,4 +49,15 @@ public class ConfigsDefinition {
     public void setProducers(Map<String, Object> producers) {
         this.producers = producers;
     }
+
+    @JsonIgnore
+    public Map<String, Object> getConsumerOverGlobal() {
+        return ConfigMerger.merge(global, consumers);
+    }
+
+    @JsonIgnore
+    public Map<String, Object> getProducerOverGlobal() {
+        return ConfigMerger.merge(global, producers);
+    }
+
 }
