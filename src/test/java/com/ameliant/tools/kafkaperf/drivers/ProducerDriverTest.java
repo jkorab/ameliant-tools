@@ -37,7 +37,7 @@ public class ProducerDriverTest {
                 .build();
 
         ProducerDefinition producerDefinition = new ProducerDefinition();
-        producerDefinition.setConfigs(producerConfigs);
+        producerDefinition.setConfig(producerConfigs);
         producerDefinition.setTopic("foo");
         producerDefinition.setMessageSize(1024);
         producerDefinition.setMessagesToSend(10000);

@@ -1,7 +1,9 @@
 package com.ameliant.tools.kafkaperf.config;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jkorab
@@ -17,25 +19,32 @@ public class TestProfileDefinition {
      */
     private boolean concurrent = true;
 
-    private ConfigsDefinition configs = new ConfigsDefinition();
+    private Map<String, Object> config = new HashMap<>();
+    private ProducersDefinition producers = new ProducersDefinition();
+    private ConsumersDefinition consumers = new ConsumersDefinition();
 
-    private List<ProducerDefinition> producers = new ArrayList<>();
-    private List<ConsumerDefinition> consumers = new ArrayList<>();
+    public boolean isConcurrent() {
+        return concurrent;
+    }
 
-    public List<ConsumerDefinition> getConsumers() {
+    public void setConcurrent(boolean concurrent) {
+        this.concurrent = concurrent;
+    }
+
+    public Map<String, Object> getConfig() {
+        return config;
+    }
+
+    public void setConfig(Map<String, Object> config) {
+        this.config = config;
+    }
+
+    public ConsumersDefinition getConsumers() {
         return consumers;
     }
 
-    public void setConsumers(List<ConsumerDefinition> consumers) {
+    public void setConsumers(ConsumersDefinition consumers) {
         this.consumers = consumers;
-    }
-
-    public List<ProducerDefinition> getProducers() {
-        return producers;
-    }
-
-    public void setProducers(List<ProducerDefinition> producers) {
-        this.producers = producers;
     }
 
     public int getMaxDuration() {
@@ -46,19 +55,12 @@ public class TestProfileDefinition {
         this.maxDuration = maxDuration;
     }
 
-    public ConfigsDefinition getConfigs() {
-        return configs;
+    public ProducersDefinition getProducers() {
+        return producers;
     }
 
-    public void setConfigs(ConfigsDefinition configs) {
-        this.configs = configs;
+    public void setProducers(ProducersDefinition producers) {
+        this.producers = producers;
     }
 
-    public boolean isConcurrent() {
-        return concurrent;
-    }
-
-    public void setConcurrent(boolean concurrent) {
-        this.concurrent = concurrent;
-    }
 }

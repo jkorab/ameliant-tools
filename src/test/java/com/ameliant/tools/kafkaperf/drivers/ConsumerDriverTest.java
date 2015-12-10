@@ -81,7 +81,7 @@ public class ConsumerDriverTest {
                 .build();
 
         ConsumerDefinition consumerDefinition = new ConsumerDefinition();
-        consumerDefinition.setConfigs(configs);
+        consumerDefinition.setConfig(configs);
         consumerDefinition.setTopic(topic);
         consumerDefinition.setMessagesToReceive(messageCount);
         return new ConsumerDriver(consumerDefinition, latch);
@@ -98,7 +98,7 @@ public class ConsumerDriverTest {
                 .build();
 
         ProducerDefinition producerDefinition = new ProducerDefinition();
-        producerDefinition.setConfigs(producerConfigs);
+        producerDefinition.setConfig(producerConfigs);
         producerDefinition.setTopic(topic);
         producerDefinition.setMessageSize(100 * 1024);
         producerDefinition.setMessagesToSend(messageCount);

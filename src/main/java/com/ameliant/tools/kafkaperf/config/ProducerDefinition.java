@@ -1,5 +1,8 @@
 package com.ameliant.tools.kafkaperf.config;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,31 +14,22 @@ public class ProducerDefinition {
     /**
      * A map of Kafka config properties.
      */
-    private Map<String, Object> configs = new HashMap<>();
+    private Map<String, Object> config = new HashMap<>();
 
     private boolean sendBlocking = false;
     private long messagesToSend = 10000;
     private String topic;
     private int messageSize = 1024;
 
-    // Required for Jackson
-    public ProducerDefinition() {}
+    @JsonBackReference
+    private ProducersDefinition producersDefinition;
 
-    // Copy constructor
-    private ProducerDefinition(Map<String, Object> configs, int messageSize, long messagesToSend, boolean sendBlocking, String topic) {
-        this.configs = configs;
-        this.messageSize = messageSize;
-        this.messagesToSend = messagesToSend;
-        this.sendBlocking = sendBlocking;
-        this.topic = topic;
+    public Map<String, Object> getConfig() {
+        return config;
     }
 
-    public Map<String, Object> getConfigs() {
-        return configs;
-    }
-
-    public void setConfigs(Map<String, Object> configs) {
-        this.configs = configs;
+    public void setConfig(Map<String, Object> config) {
+        this.config = config;
     }
 
     public String getTopic() {
@@ -70,10 +64,16 @@ public class ProducerDefinition {
         this.messageSize = messageSize;
     }
 
-    public ProducerDefinition withParentConfigs(Map<String, Object> parentConfigs) {
-        Map<String, Object> mergedConfig = ConfigMerger.merge(parentConfigs, configs);
+    public ProducersDefinition getProducersDefinition() {
+        return producersDefinition;
+    }
 
-        return new ProducerDefinition(mergedConfig,
-                messageSize, messagesToSend, sendBlocking, topic);
+    public void setProducersDefinition(ProducersDefinition producersDefinition) {
+        this.producersDefinition = producersDefinition;
+    }
+
+    @JsonIgnore
+    public Map<String, Object> getMergedConfig() {
+        return ConfigMerger.merge(producersDefinition.getConfig(), config);
     }
 }

@@ -23,7 +23,7 @@ Sample config is as follows (pseudo-JSON, as it normally doesn't support comment
     {
       // Beware: this format will change in the near future!!!
 
-      "configs" : { // defines Kafka config properties
+      "config" : { // defines Kafka config properties
         "global" : { // applies to both consumers and producers
           "bootstrap.servers" : "tcp://localhost:9092"
         },
@@ -39,7 +39,7 @@ Sample config is as follows (pseudo-JSON, as it normally doesn't support comment
       },
       "producers" : [
         {
-          "configs" : { // overrides the producers config above
+          "config" : { // overrides the producers config above
             "timeout.ms" : "5000"
           },
           // test tool config for this producer
@@ -59,7 +59,7 @@ Sample config is as follows (pseudo-JSON, as it normally doesn't support comment
       ],
       "consumers" : [
         {
-          "configs" : { // overrides the consumers config above
+          "config" : { // overrides the consumers config above
             "timeout.ms" : "5000"
           },
           // see ConsumerDefinition for full set of flags
@@ -69,7 +69,7 @@ Sample config is as follows (pseudo-JSON, as it normally doesn't support comment
       ]
     }
 
-Example configs are located in `src/test/resources/test-profiles`.
+Example config are located in `src/test/resources/test-profiles`.
 
 Known issues:
 

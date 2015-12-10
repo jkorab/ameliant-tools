@@ -1,9 +1,6 @@
 package com.ameliant.tools.kafkaperf.drivers;
 
-import com.ameliant.tools.kafkaperf.config.ConfigsDefinition;
-import com.ameliant.tools.kafkaperf.config.ConsumerDefinition;
-import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
-import com.ameliant.tools.kafkaperf.config.TestProfileDefinition;
+import com.ameliant.tools.kafkaperf.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,27 +29,31 @@ public class TestProfileRunner {
         ArrayList<Driver> drivers = new ArrayList<>();
 
         int driverCount = 0;
-        List<ProducerDefinition> producerDefinitions = testProfileDefinition.getProducers();
+        Map<String, Object> globalConfig = testProfileDefinition.getConfig();
+
+        ProducersDefinition producersDefinition = testProfileDefinition.getProducers();
+        Map<String, Object> producersConfig = producersDefinition.getConfig();
+
+        List<ProducerDefinition> producerDefinitions = (List<ProducerDefinition>) producersDefinition;
         driverCount += producerDefinitions.size();
 
-        List<ConsumerDefinition> consumerDefinitions = testProfileDefinition.getConsumers();
+        ConsumersDefinition consumersDefinition = testProfileDefinition.getConsumers();
+        Map<String, Object> consumersConfig = consumersDefinition.getConfig();
+
+        List<ConsumerDefinition> consumerDefinitions = consumersDefinition.getInstances();
         driverCount += consumerDefinitions.size();
 
         log.debug("Latching {} drivers", driverCount);
         CountDownLatch latch = new CountDownLatch(driverCount);
 
-        ConfigsDefinition configs = testProfileDefinition.getConfigs();
-        Map<String, Object> producerOverGlobal = configs.getProducerOverGlobal();
-        Map<String, Object> consumerOverGlobal = configs.getConsumerOverGlobal();
-
         drivers.addAll(producerDefinitions.stream()
                 .map(producerDefinition -> new ProducerDriver(
-                        producerDefinition.withParentConfigs(producerOverGlobal), latch))
+                        producerDefinition, latch))
                 .collect(Collectors.toList()));
 
         drivers.addAll(consumerDefinitions.stream()
                 .map(consumerDefinition -> new ConsumerDriver(
-                        consumerDefinition.withParentConfigs(consumerOverGlobal), latch))
+                        consumerDefinition, latch))
                 .collect(Collectors.toList()));
 
         if (testProfileDefinition.isConcurrent()) {

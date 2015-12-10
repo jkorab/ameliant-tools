@@ -34,7 +34,7 @@ public class ProducerDriver implements Driver {
     }
 
     public void run() {
-        KafkaProducer producer = new KafkaProducer(producerDefinition.getConfigs());
+        KafkaProducer producer = new KafkaProducer(producerDefinition.getMergedConfig());
 
         String message = generateMessage(producerDefinition.getMessageSize());
         StopWatch stopWatch = new StopWatch();

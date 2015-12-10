@@ -33,7 +33,7 @@ public class ConsumerDriver implements Driver {
 
     @Override
     public void run() {
-        Map<String, Object> configs = consumerDefinition.getConfigs();
+        Map<String, Object> configs = consumerDefinition.getMergedConfig();
         KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(configs);
 
         String topic = consumerDefinition.getTopic();

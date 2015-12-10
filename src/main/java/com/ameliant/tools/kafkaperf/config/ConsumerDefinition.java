@@ -1,7 +1,7 @@
 package com.ameliant.tools.kafkaperf.config;
 
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.common.serialization.Deserializer;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ public class ConsumerDefinition {
     /**
      * A map of Kafka config properties.
      */
-    private Map<String, Object> configs = new HashMap<>();
+    private Map<String, Object> config = new HashMap<>();
 
     private String topic;
     private long messagesToReceive = 10000;
@@ -24,28 +24,15 @@ public class ConsumerDefinition {
 
     private long testRunTimeout = Long.MAX_VALUE;
 
-    // Required for Jackson
-    public ConsumerDefinition() {}
+    @JsonBackReference
+    private ConsumersDefinition consumersDefinition;
 
-    // Copy constructor
-    private ConsumerDefinition(Map<String, Object> configs, String consumerGroupId,
-                              long messagesToReceive, long pollTimeout,
-                              int reportReceivedEvery, long testRunTimeout, String topic) {
-        this.configs = configs;
-        this.consumerGroupId = consumerGroupId;
-        this.messagesToReceive = messagesToReceive;
-        this.pollTimeout = pollTimeout;
-        this.reportReceivedEvery = reportReceivedEvery;
-        this.testRunTimeout = testRunTimeout;
-        this.topic = topic;
+    public Map<String, Object> getConfig() {
+        return config;
     }
 
-    public Map<String, Object> getConfigs() {
-        return configs;
-    }
-
-    public void setConfigs(Map<String, Object> configs) {
-        this.configs = configs;
+    public void setConfig(Map<String, Object> config) {
+        this.config = config;
     }
 
     public String getConsumerGroupId() {
@@ -96,12 +83,17 @@ public class ConsumerDefinition {
         this.reportReceivedEvery = reportReceivedEvery;
     }
 
-    public ConsumerDefinition withParentConfigs(Map<String, Object> parentConfigs) {
-        Map<String, Object> mergedConfig = ConfigMerger.merge(parentConfigs, configs);
+    public ConsumersDefinition getConsumersDefinition() {
+        return consumersDefinition;
+    }
 
-        return new ConsumerDefinition(mergedConfig, consumerGroupId,
-                messagesToReceive, pollTimeout,
-                reportReceivedEvery, testRunTimeout, topic);
+    public void setConsumersDefinition(ConsumersDefinition consumersDefinition) {
+        this.consumersDefinition = consumersDefinition;
+    }
+
+    @JsonIgnore
+    public Map<String, Object> getMergedConfig() {
+        return ConfigMerger.merge(consumersDefinition.getMergedConfig(), config);
     }
 
 }
