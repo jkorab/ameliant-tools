@@ -67,7 +67,7 @@ public class ProducerDriver implements Driver {
                     if (exception == null) {
                         dumpOffset(recordMetadata);
                     } else {
-                        log.error("Error sending to Kafka: {}", exception);
+                        log.error("Error sending to Kafka: {}", exception.getMessage());
                     }
                 });
             }
@@ -97,9 +97,10 @@ public class ProducerDriver implements Driver {
     }
 
     private void dumpOffset(RecordMetadata recordMetadata) {
-        if (!log.isDebugEnabled()) return;
-        Validate.notNull(recordMetadata, "recordMetadata is null");
-        log.debug("The partition:offset of the record sent was {}:{}",
-               recordMetadata.partition(), recordMetadata.offset());
+        assert (recordMetadata != null);
+        if (log.isDebugEnabled()) {
+            log.debug("The partition:offset of the record sent was {}:{}",
+                    recordMetadata.partition(), recordMetadata.offset());
+        }
     }
 }

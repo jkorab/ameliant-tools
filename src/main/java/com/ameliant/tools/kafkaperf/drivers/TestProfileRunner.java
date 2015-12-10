@@ -55,20 +55,28 @@ public class TestProfileRunner {
                         consumerDefinition.withParentConfigs(consumerOverGlobal), latch))
                 .collect(Collectors.toList()));
 
-        ExecutorService executorService = Executors.newFixedThreadPool(driverCount);
+        if (testProfileDefinition.isConcurrent()) {
+            ExecutorService executorService = Executors.newFixedThreadPool(driverCount);
 
-        drivers.forEach(driver -> {
+            drivers.forEach(driver -> {
                 log.debug("Submitting {}", driver);
                 executorService.submit(driver);
             });
 
-        try {
-            if (!latch.await(testProfileDefinition.getMaxDuration(), TimeUnit.SECONDS)) {
-                log.info("Shutting down gracefully");
-                drivers.forEach(driver -> driver.flagShutdown());
+            try {
+                if (!latch.await(testProfileDefinition.getMaxDuration(), TimeUnit.SECONDS)) {
+                    log.info("Shutting down gracefully");
+                    drivers.forEach(driver -> driver.flagShutdown());
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            executorService.shutdown();
+        } else {
+            drivers.forEach(driver -> {
+                log.debug("Running {}", driver);
+                driver.run();
+            });
         }
     }
 }

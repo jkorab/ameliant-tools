@@ -25,7 +25,7 @@ Sample config is as follows (pseudo-JSON, as it normally doesn't support comment
 
       "configs" : { // defines Kafka config properties
         "global" : { // applies to both consumers and producers
-          "bootstrap.servers" : "tcp://localhost:2181"
+          "bootstrap.servers" : "tcp://localhost:9092"
         },
         "producers" : { // applies to all producers
           "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",

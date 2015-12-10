@@ -8,7 +8,14 @@ import java.util.List;
  */
 public class TestProfileDefinition {
 
-    private int maxDuration = 30; // seconds
+    /**
+     * Maximum test duration in seconds. Applies to concurrent tests only.
+     */
+    private int maxDuration = 30;
+    /**
+     * Whether producers and consumers execute concurrently. If false, producers will executed before consumers.
+     */
+    private boolean concurrent = true;
 
     private ConfigsDefinition configs = new ConfigsDefinition();
 
@@ -45,5 +52,13 @@ public class TestProfileDefinition {
 
     public void setConfigs(ConfigsDefinition configs) {
         this.configs = configs;
+    }
+
+    public boolean isConcurrent() {
+        return concurrent;
+    }
+
+    public void setConcurrent(boolean concurrent) {
+        this.concurrent = concurrent;
     }
 }
