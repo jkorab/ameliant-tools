@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,31 +28,21 @@ public class TestProfileRunner {
         ArrayList<Driver> drivers = new ArrayList<>();
 
         int driverCount = 0;
-        Map<String, Object> globalConfig = testProfileDefinition.getConfig();
-
-        ProducersDefinition producersDefinition = testProfileDefinition.getProducers();
-        Map<String, Object> producersConfig = producersDefinition.getConfig();
-
-        List<ProducerDefinition> producerDefinitions = (List<ProducerDefinition>) producersDefinition;
+        List<ProducerDefinition> producerDefinitions = testProfileDefinition.getProducers().getInstances();
         driverCount += producerDefinitions.size();
 
-        ConsumersDefinition consumersDefinition = testProfileDefinition.getConsumers();
-        Map<String, Object> consumersConfig = consumersDefinition.getConfig();
-
-        List<ConsumerDefinition> consumerDefinitions = consumersDefinition.getInstances();
+        List<ConsumerDefinition> consumerDefinitions = testProfileDefinition.getConsumers().getInstances();
         driverCount += consumerDefinitions.size();
 
         log.debug("Latching {} drivers", driverCount);
         CountDownLatch latch = new CountDownLatch(driverCount);
 
         drivers.addAll(producerDefinitions.stream()
-                .map(producerDefinition -> new ProducerDriver(
-                        producerDefinition, latch))
+                .map(producerDefinition -> new ProducerDriver(producerDefinition, latch))
                 .collect(Collectors.toList()));
 
         drivers.addAll(consumerDefinitions.stream()
-                .map(consumerDefinition -> new ConsumerDriver(
-                        consumerDefinition, latch))
+                .map(consumerDefinition -> new ConsumerDriver(consumerDefinition, latch))
                 .collect(Collectors.toList()));
 
         if (testProfileDefinition.isConcurrent()) {
@@ -67,7 +56,7 @@ public class TestProfileRunner {
             try {
                 if (!latch.await(testProfileDefinition.getMaxDuration(), TimeUnit.SECONDS)) {
                     log.info("Shutting down gracefully");
-                    drivers.forEach(driver -> driver.flagShutdown());
+                    drivers.forEach(driver -> driver.markShuttingDown());
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

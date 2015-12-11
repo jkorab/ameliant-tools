@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
 /**
  * @author jkorab
  */
-public class ProducerDriver implements Driver {
+public class ProducerDriver extends Driver {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ProducerDefinition producerDefinition;
@@ -31,6 +31,13 @@ public class ProducerDriver implements Driver {
     ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch latch) {
         this(producerDefinition);
         this.latch = latch;
+    }
+
+    @Override
+    public String toString() {
+        return "ProducerDriver{" +
+                "producerDefinition=" + producerDefinition +
+                '}';
     }
 
     public void run() {
@@ -47,7 +54,7 @@ public class ProducerDriver implements Driver {
 
         log.info("Producing {} messages to {}", messagesToSend, topic);
         for (int i = 0; i < messagesToSend; i++) {
-            if (shutDown.get()) {
+            if (isShuttingDown()) {
                 break;
             }
 
@@ -73,10 +80,10 @@ public class ProducerDriver implements Driver {
             }
         }
 
-        if (shutDown.get()) {
-            log.info("Forced shutdown");
+        stopWatch.stop();
+        if (isShuttingDown()) {
+            log.info("Shutting down");
         } else {
-            stopWatch.stop();
             long runTime = stopWatch.getTime();
             log.info("Done. Producer finished sending {} msgs in {} ms", messagesToSend, runTime);
 

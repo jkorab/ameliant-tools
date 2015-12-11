@@ -1,15 +1,17 @@
 package com.ameliant.tools.kafkaperf.drivers;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * @author jkorab
  */
-public interface Driver extends Runnable {
+public abstract class Driver implements Runnable {
 
-    AtomicBoolean shutDown = new AtomicBoolean(false);
+    private boolean shuttingDown = false;
 
-    default void flagShutdown() {
-        shutDown.set(true);
+    public void markShuttingDown() {
+        shuttingDown = true;
+    }
+
+    protected boolean isShuttingDown() {
+        return shuttingDown;
     }
 }

@@ -12,10 +12,9 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * TODO add graceful shutdown logic
  * @author jkorab
  */
-public class ConsumerDriver implements Driver {
+public class ConsumerDriver extends Driver {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ConsumerDefinition consumerDefinition;
@@ -60,6 +59,9 @@ public class ConsumerDriver implements Driver {
                         throw new RuntimeException(e);
                     }
                 } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Fetched {} records", records.count());
+                    }
                     for (ConsumerRecord<byte[], byte[]> record : records) {
                         recordsFetched += 1;
                         if (recordsFetched % consumerDefinition.getReportReceivedEvery() == 0) {
@@ -70,15 +72,20 @@ public class ConsumerDriver implements Driver {
             }
 
             stopWatch.split();
-        } while ((recordsFetched < messagesToReceive)
+        } while ((!isShuttingDown())
+                && (recordsFetched < messagesToReceive)
                 && (stopWatch.getSplitTime() < consumerDefinition.getTestRunTimeout()));
 
         stopWatch.stop();
-        long runTime = stopWatch.getTime();
-        log.info("Done. Consumer received {} msgs in {} ms", messagesToReceive, runTime);
+        if (isShuttingDown()) {
+            log.info("Shutting down");
+        } else {
+            long runTime = stopWatch.getTime();
+            log.info("Done. Consumer received {} msgs in {} ms", messagesToReceive, runTime);
 
-        double averageThroughput = (1000d / runTime) * messagesToReceive;
-        log.info("Average throughput: {} msg/s", averageThroughput);
+            double averageThroughput = (1000d / runTime) * messagesToReceive;
+            log.info("Average throughput: {} msg/s", averageThroughput);
+        }
 
         consumer.close();
         if (latch != null) {

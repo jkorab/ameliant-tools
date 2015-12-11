@@ -40,7 +40,7 @@ public class ProducerDriverTest {
         producerDefinition.setConfig(producerConfigs);
         producerDefinition.setTopic("foo");
         producerDefinition.setMessageSize(1024);
-        producerDefinition.setMessagesToSend(10000);
+        producerDefinition.setMessagesToSend(1000);
         producerDefinition.setSendBlocking(true);
 
         ProducerDriver driver = new ProducerDriver(producerDefinition);

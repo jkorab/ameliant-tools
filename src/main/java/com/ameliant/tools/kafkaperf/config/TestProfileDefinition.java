@@ -1,5 +1,7 @@
 package com.ameliant.tools.kafkaperf.config;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +10,7 @@ import java.util.Map;
 /**
  * @author jkorab
  */
-public class TestProfileDefinition {
+public class TestProfileDefinition extends Configurable {
 
     /**
      * Maximum test duration in seconds. Applies to concurrent tests only.
@@ -19,8 +21,10 @@ public class TestProfileDefinition {
      */
     private boolean concurrent = true;
 
-    private Map<String, Object> config = new HashMap<>();
+    @JsonManagedReference
     private ProducersDefinition producers = new ProducersDefinition();
+
+    @JsonManagedReference
     private ConsumersDefinition consumers = new ConsumersDefinition();
 
     public boolean isConcurrent() {
@@ -29,14 +33,6 @@ public class TestProfileDefinition {
 
     public void setConcurrent(boolean concurrent) {
         this.concurrent = concurrent;
-    }
-
-    public Map<String, Object> getConfig() {
-        return config;
-    }
-
-    public void setConfig(Map<String, Object> config) {
-        this.config = config;
     }
 
     public ConsumersDefinition getConsumers() {

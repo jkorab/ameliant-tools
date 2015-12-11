@@ -35,7 +35,7 @@ public class ConsumerDriverTest {
     @Test
     public void testReceive_sequential() throws InterruptedException {
         String topic = "foo";
-        int messageCount = 10000;
+        int messageCount = 1000;
 
         CountDownLatch latch = new CountDownLatch(2);
 
@@ -52,7 +52,7 @@ public class ConsumerDriverTest {
     @Test
     public void testReceive_parallel() throws InterruptedException {
         String topic = "foo";
-        int messageCount = 10000;
+        int messageCount = 1000;
 
         int numWorkers = 2;
         CountDownLatch latch = new CountDownLatch(numWorkers);

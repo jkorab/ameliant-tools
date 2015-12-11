@@ -9,27 +9,27 @@ import java.util.Map;
 /**
  * @author jkorab
  */
-public class ProducerDefinition {
+public class ProducerDefinition extends ConfigurableWithParent {
 
-    /**
-     * A map of Kafka config properties.
-     */
-    private Map<String, Object> config = new HashMap<>();
-
-    private boolean sendBlocking = false;
-    private long messagesToSend = 10000;
     private String topic;
+    private long messagesToSend = 10000;
     private int messageSize = 1024;
+    private boolean sendBlocking = false;
 
-    @JsonBackReference
-    private ProducersDefinition producersDefinition;
+    @Override
+    public String toString() {
+        String mergedConfig = getMergedConfig().entrySet().stream()
+                .map(entry -> entry.getKey() + ":" + entry.getValue())
+                .reduce("", (joined, configEntry) ->
+                        (joined.equals("")) ? configEntry : joined + ", " + configEntry);
 
-    public Map<String, Object> getConfig() {
-        return config;
-    }
-
-    public void setConfig(Map<String, Object> config) {
-        this.config = config;
+        return "ProducerDefinition{" +
+                "topic='" + topic + '\'' +
+                ", messagesToSend=" + messagesToSend +
+                ", messageSize=" + messageSize +
+                ", sendBlocking=" + sendBlocking +
+                ", mergedConfig={" + mergedConfig + "}" +
+                '}';
     }
 
     public String getTopic() {
@@ -64,16 +64,4 @@ public class ProducerDefinition {
         this.messageSize = messageSize;
     }
 
-    public ProducersDefinition getProducersDefinition() {
-        return producersDefinition;
-    }
-
-    public void setProducersDefinition(ProducersDefinition producersDefinition) {
-        this.producersDefinition = producersDefinition;
-    }
-
-    @JsonIgnore
-    public Map<String, Object> getMergedConfig() {
-        return ConfigMerger.merge(producersDefinition.getConfig(), config);
-    }
 }

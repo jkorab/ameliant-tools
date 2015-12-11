@@ -1,8 +1,8 @@
 {
-  "README" : "THIS IS A WORK IN PROGRESS, IT DOESN'T WORK YET!!!",
-
+  "concurrent" : "false",
   "config" : {
-    "bootstrap.servers" : "tcp://localhost:2181"
+    "FIXME" : "for some reason, this isn't being inherited",
+    "bootstrap.servers" : "tcp://localhost:9020"
   },
   "producers" : {
     "config" : {
@@ -33,7 +33,11 @@
   },
   "consumers" : {
     "config" : {
-      "timeout.ms" : "5000"
+        "key.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+        "value.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+        "enable.auto.commit" : "true",
+        "auto.commit.interval.ms" : "1000",
+        "auto.offset.reset" : "earliest"
     },
     "instances" : [
       {

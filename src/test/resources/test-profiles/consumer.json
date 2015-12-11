@@ -1,18 +1,19 @@
 {
-  "concurrent" : "true",
-  "consumers" : [
-    {
-      "configs" : {
-        "bootstrap.servers" : "tcp://localhost:9092",
-        "key.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-        "value.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-        "enable.auto.commit" : "true",
-        "auto.commit.interval.ms" : "1000",
-        "auto.offset.reset" : "earliest",
-        "group.id" : "bar"
-      },
-      "topic" : "foo",
-      "messagesToReceive" : "404000"
-    }
-  ]
+  "consumers" : {
+    "config" : {
+      "bootstrap.servers" : "tcp://localhost:9092",
+      "key.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+      "value.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+      "enable.auto.commit" : "true",
+      "auto.commit.interval.ms" : "1000",
+      "auto.offset.reset" : "earliest",
+      "group.id" : "bar"
+    },
+    "instances" : [
+      {
+        "topic" : "foo",
+        "messagesToReceive" : "100000"
+      }
+    ]
+  }
 }
