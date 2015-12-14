@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang.Validate;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,14 +31,17 @@ public abstract class ConfigurableWithParent extends Configurable {
      * Get the merged config of this object and its parent. If the Caches the result, so any changes to this config will not show up.
      * @return The merged config of this object and its parent.
      */
-    @JsonIgnore
-    public Map<String, Object> getMergedConfig() {
-        if (mergedConfig == null) {
-            Map<String, Object> config = getConfig();
-            mergedConfig = (parent == null) ? config
-                    : merge(parent.getConfig(), config);
+    @Override
+    public Map<String, Object> getKafkaConfig() {
+        Map<String, Object> config = getConfig();
+        if (parent == null) {
+            return config;
         }
-        return mergedConfig;
+
+        if (mergedConfig == null) { // lazy init
+            mergedConfig = merge(parent.getKafkaConfig(), config);
+        }
+        return Collections.unmodifiableMap(mergedConfig);
     }
 
     /**

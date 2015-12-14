@@ -32,8 +32,7 @@ public class ConsumerDriver extends Driver {
 
     @Override
     public void run() {
-        Map<String, Object> configs = consumerDefinition.getMergedConfig();
-        KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(configs);
+        KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(consumerDefinition.getKafkaConfig());
 
         String topic = consumerDefinition.getTopic();
         log.info("Subscribing to {}", topic);

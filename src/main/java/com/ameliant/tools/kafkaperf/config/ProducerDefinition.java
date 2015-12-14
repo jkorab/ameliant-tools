@@ -1,11 +1,5 @@
 package com.ameliant.tools.kafkaperf.config;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author jkorab
  */
@@ -18,7 +12,7 @@ public class ProducerDefinition extends ConfigurableWithParent {
 
     @Override
     public String toString() {
-        String mergedConfig = getMergedConfig().entrySet().stream()
+        String mergedConfig = getKafkaConfig().entrySet().stream()
                 .map(entry -> entry.getKey() + ":" + entry.getValue())
                 .reduce("", (joined, configEntry) ->
                         (joined.equals("")) ? configEntry : joined + ", " + configEntry);
