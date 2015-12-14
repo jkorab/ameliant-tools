@@ -17,20 +17,11 @@
         "messagesToSend" : "1000",
         "sendBlocking": "false",
         "messageSize" : "1000"
-      }
-    ]
-  },
-  "consumers" : {
-    "config" : {
-        "key.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-        "value.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-        "enable.auto.commit" : "true",
-        "auto.commit.interval.ms" : "1000",
-        "auto.offset.reset" : "earliest"
-    },
-    "instances" : [
+      },
       {
-        "consumerGroupId" : "bar"
+        "messagesToSend" : "1000",
+        "sendBlocking": "false",
+        "messageSize" : "1000"
       }
     ]
   }
