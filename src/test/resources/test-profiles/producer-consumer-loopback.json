@@ -2,6 +2,7 @@
   "config" : {
     "bootstrap.servers" : "tcp://localhost:9020"
   },
+  "autogenerateTopic" : "true",
   "producers" : {
     "config" : {
       "request.required.acks": "ackFromLeader",
@@ -13,19 +14,9 @@
     },
     "instances" : [
       {
-        "config" : {
-          "timeout.ms" : "5000"
-        },
-        "topic" : "foo",
         "messagesToSend" : "1000",
         "sendBlocking": "false",
-        "messageSize" : "100000"
-      },
-      {
-        "topic" : "bar",
-        "messagesToSend" : "200",
-        "sendBlocking": "true",
-        "messageSize" : "10000"
+        "messageSize" : "1000"
       }
     ]
   },
@@ -39,10 +30,6 @@
     },
     "instances" : [
       {
-        "config" : {
-          "timeout.ms" : "5000"
-        },
-        "topic" : "foo",
         "consumerGroupId" : "bar"
       }
     ]

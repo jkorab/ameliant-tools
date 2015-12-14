@@ -7,6 +7,7 @@ import org.apache.commons.lang.Validate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author jkorab
@@ -16,7 +17,7 @@ public abstract class ConfigurableWithParent extends Configurable {
     private Configurable parent;
 
     @JsonIgnore
-    private Map<String, Object> mergedConfig; // lazily initialised
+    private Map<String, Object> _mergedConfig; // lazily initialised
 
     public Configurable getParent() {
         return parent;
@@ -38,10 +39,10 @@ public abstract class ConfigurableWithParent extends Configurable {
             return config;
         }
 
-        if (mergedConfig == null) { // lazy init
-            mergedConfig = merge(parent.getKafkaConfig(), config);
+        if (_mergedConfig == null) { // lazy init
+            _mergedConfig = merge(parent.getKafkaConfig(), config);
         }
-        return Collections.unmodifiableMap(mergedConfig);
+        return Collections.unmodifiableMap(_mergedConfig);
     }
 
     /**
@@ -60,5 +61,10 @@ public abstract class ConfigurableWithParent extends Configurable {
         return merged;
     }
 
+    @Override
+    public String getTopic() {
+        return ((parent == null) || (parent.getTopic() == null))
+                ? super.getTopic() : parent.getTopic();
+    }
 
 }

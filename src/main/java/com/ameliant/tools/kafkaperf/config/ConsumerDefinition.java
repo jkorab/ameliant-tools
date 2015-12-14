@@ -11,7 +11,6 @@ import java.util.Map;
  */
 public class ConsumerDefinition extends ConfigurableWithParent {
 
-    private String topic;
     private long messagesToReceive = 10000;
     private String consumerGroupId;
     private long pollTimeout = 1000;
@@ -33,14 +32,6 @@ public class ConsumerDefinition extends ConfigurableWithParent {
 
     public void setMessagesToReceive(long messagesToReceive) {
         this.messagesToReceive = messagesToReceive;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
     }
 
     public long getPollTimeout() {

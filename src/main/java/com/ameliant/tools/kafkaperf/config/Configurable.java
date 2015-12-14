@@ -13,6 +13,16 @@ public abstract class Configurable {
 
     private Map<String, Object> config = new HashMap<>();
 
+    private String topic;
+
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
     public Map<String, Object> getConfig() {
         return config;
     }

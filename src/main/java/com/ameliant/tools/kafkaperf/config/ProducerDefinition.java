@@ -5,7 +5,6 @@ package com.ameliant.tools.kafkaperf.config;
  */
 public class ProducerDefinition extends ConfigurableWithParent {
 
-    private String topic;
     private long messagesToSend = 10000;
     private int messageSize = 1024;
     private boolean sendBlocking = false;
@@ -18,20 +17,12 @@ public class ProducerDefinition extends ConfigurableWithParent {
                         (joined.equals("")) ? configEntry : joined + ", " + configEntry);
 
         return "ProducerDefinition{" +
-                "topic='" + topic + '\'' +
+                "topic='" + getTopic() + '\'' +
                 ", messagesToSend=" + messagesToSend +
                 ", messageSize=" + messageSize +
                 ", sendBlocking=" + sendBlocking +
                 ", mergedConfig={" + mergedConfig + "}" +
                 '}';
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
     }
 
     public boolean isSendBlocking() {
