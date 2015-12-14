@@ -32,63 +32,65 @@ public class ConsumerDriver extends Driver {
 
     @Override
     public void run() {
-        KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(consumerDefinition.getKafkaConfig());
+        try (KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(consumerDefinition.getKafkaConfig())) {
 
-        String topic = consumerDefinition.getTopic();
-        log.info("Subscribing to {}", topic);
-        consumer.subscribe(Collections.singletonList(topic));
+            String topic = consumerDefinition.getTopic();
+            log.info("Subscribing to {}", topic);
+            consumer.subscribe(Collections.singletonList(topic));
 
-        long recordsFetched = 0;
-        long messagesToReceive = consumerDefinition.getMessagesToReceive();
-        log.info("Expecting {} messages", messagesToReceive);
+            long recordsFetched = 0;
+            long messagesToReceive = consumerDefinition.getMessagesToReceive();
+            log.info("Expecting {} messages", messagesToReceive);
 
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
 
-        do {
-            ConsumerRecords<byte[], byte[]> records = consumer.poll(consumerDefinition.getPollTimeout());
-            if (records == null) {
-                throw new IllegalStateException("null ConsumerRecords polled");
-            } else {
-                if (records.count() == 0) {
-                    try {
-                        log.info("No records fetched, pausing");
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+            do {
+                ConsumerRecords<byte[], byte[]> records = consumer.poll(consumerDefinition.getPollTimeout());
+                if (records == null) {
+                    throw new IllegalStateException("null ConsumerRecords polled");
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Fetched {} records", records.count());
-                    }
-                    for (ConsumerRecord<byte[], byte[]> record : records) {
-                        recordsFetched += 1;
-                        if (recordsFetched % consumerDefinition.getReportReceivedEvery() == 0) {
-                            log.info("Received {} messages", recordsFetched);
+                    if (records.count() == 0) {
+                        try {
+                            log.info("No records fetched, pausing");
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Fetched {} records", records.count());
+                        }
+                        for (ConsumerRecord<byte[], byte[]> record : records) {
+                            recordsFetched += 1;
+                            if (recordsFetched % consumerDefinition.getReportReceivedEvery() == 0) {
+                                log.info("Received {} messages", recordsFetched);
+                            }
                         }
                     }
                 }
+
+                stopWatch.split();
+            } while ((!isShuttingDown())
+                    && (recordsFetched < messagesToReceive)
+                    && (stopWatch.getSplitTime() < consumerDefinition.getTestRunTimeout()));
+
+            stopWatch.stop();
+            if (isShuttingDown()) {
+                log.info("Shutting down");
+            } else {
+                long runTime = stopWatch.getTime();
+                log.info("Done. Consumer received {} msgs in {} ms", messagesToReceive, runTime);
+
+                double averageThroughput = (1000d / runTime) * messagesToReceive;
+                log.info("Average throughput: {} msg/s", averageThroughput);
             }
 
-            stopWatch.split();
-        } while ((!isShuttingDown())
-                && (recordsFetched < messagesToReceive)
-                && (stopWatch.getSplitTime() < consumerDefinition.getTestRunTimeout()));
-
-        stopWatch.stop();
-        if (isShuttingDown()) {
-            log.info("Shutting down");
-        } else {
-            long runTime = stopWatch.getTime();
-            log.info("Done. Consumer received {} msgs in {} ms", messagesToReceive, runTime);
-
-            double averageThroughput = (1000d / runTime) * messagesToReceive;
-            log.info("Average throughput: {} msg/s", averageThroughput);
-        }
-
-        consumer.close();
-        if (latch != null) {
-            latch.countDown();
+        } finally {
+            log.debug("Consumer closed");
+            if (latch != null) {
+                latch.countDown();
+            }
         }
     }
 }

@@ -41,60 +41,61 @@ public class ProducerDriver extends Driver {
     }
 
     public void run() {
-        KafkaProducer producer = new KafkaProducer(producerDefinition.getKafkaConfig());
+        try (KafkaProducer producer = new KafkaProducer(producerDefinition.getKafkaConfig())) {
 
-        String message = generateMessage(producerDefinition.getMessageSize());
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+            String message = generateMessage(producerDefinition.getMessageSize());
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
 
-        String topic = producerDefinition.getTopic();
-        Validate.notEmpty(topic, "topic is empty");
-        long messagesToSend = producerDefinition.getMessagesToSend();
-        Validate.isTrue(messagesToSend > 0, "messagesToSend must be greater than 0");
+            String topic = producerDefinition.getTopic();
+            Validate.notEmpty(topic, "topic is empty");
+            long messagesToSend = producerDefinition.getMessagesToSend();
+            Validate.isTrue(messagesToSend > 0, "messagesToSend must be greater than 0");
 
-        log.info("Producing {} messages to {}", messagesToSend, topic);
-        for (int i = 0; i < messagesToSend; i++) {
-            if (isShuttingDown()) {
-                break;
-            }
-
-            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, message.getBytes());
-
-            if (producerDefinition.isSendBlocking()) {
-                Future<RecordMetadata> future = producer.send(record);
-                try {
-                    // all sends are async, you need to get in order to block
-                    dumpOffset(future.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
+            log.info("Producing {} messages to {}", messagesToSend, topic);
+            for (int i = 0; i < messagesToSend; i++) {
+                if (isShuttingDown()) {
+                    break;
                 }
-            } else {
-                // callbacks for records being sent to the same partition are guaranteed to execute in order
-                producer.send(record, (recordMetadata, exception) -> {
-                    if (exception == null) {
-                        dumpOffset(recordMetadata);
-                    } else {
-                        log.error("Error sending to Kafka: {}", exception.getMessage());
+
+                ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, message.getBytes());
+
+                if (producerDefinition.isSendBlocking()) {
+                    Future<RecordMetadata> future = producer.send(record);
+                    try {
+                        // all sends are async, you need to get in order to block
+                        dumpOffset(future.get());
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
                     }
-                });
+                } else {
+                    // callbacks for records being sent to the same partition are guaranteed to execute in order
+                    producer.send(record, (recordMetadata, exception) -> {
+                        if (exception == null) {
+                            dumpOffset(recordMetadata);
+                        } else {
+                            log.error("Error sending to Kafka: {}", exception.getMessage());
+                        }
+                    });
+                }
             }
-        }
 
-        stopWatch.stop();
-        if (isShuttingDown()) {
-            log.info("Shutting down");
-        } else {
-            long runTime = stopWatch.getTime();
-            log.info("Done. Producer finished sending {} msgs in {} ms", messagesToSend, runTime);
+            stopWatch.stop();
+            if (isShuttingDown()) {
+                log.info("Shutting down");
+            } else {
+                long runTime = stopWatch.getTime();
+                log.info("Done. Producer finished sending {} msgs in {} ms", messagesToSend, runTime);
 
-            double averageThroughput = (1000d / runTime) * messagesToSend;
-            log.info("Average throughput: {} msg/s", averageThroughput);
-        }
+                double averageThroughput = (1000d / runTime) * messagesToSend;
+                log.info("Average throughput: {} msg/s", averageThroughput);
+            }
 
-        producer.close();
-        log.debug("Producer closed");
-        if (latch != null) {
-            latch.countDown();
+        } finally {
+            log.debug("Producer closed");
+            if (latch != null) {
+                latch.countDown();
+            }
         }
     }
 
