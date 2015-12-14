@@ -21,56 +21,56 @@ Lower-lever config is merged with, and in the process overrides, config defined 
 Sample config is as follows (pseudo-JSON, as it normally doesn't support comments):
 
     {
-      // Beware: this format will change in the near future!!!
-
-      "config" : { // defines Kafka config properties
-        "global" : { // applies to both consumers and producers
-          "bootstrap.servers" : "tcp://localhost:9092"
-        },
-        "producers" : { // applies to all producers
+      // see TestProfileDefinition for all properties
+      "config" : {
+        // Kafka config; applies to producers and consumers
+        "bootstrap.servers" : "tcp://localhost:9092"
+      },
+      "producers" : {
+        "config" : {
+          // Kafka config; applies to all producers
+          "request.required.acks": "ackFromLeader",
+          "producer.type": "sync",
           "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
           "value.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
           "batch.size": "0",
           "timeout.ms" : "10000"
         },
-        "consumers" : { // applies to all consumers
-          // ...
-        }
+        "instances" : [
+          {
+            // see ProducerDefinition for all properties
+            "config" : {
+              // Kafka config; just for this producer
+              "timeout.ms" : "5000"
+            },
+            "topic" : "foo",
+            "messagesToSend" : "1000",
+            "sendBlocking": "false",
+            "messageSize" : "100000"
+          }
+        ]
       },
-      "producers" : [
-        {
-          "config" : { // overrides the producers config above
-            "timeout.ms" : "5000"
-          },
-          // test tool config for this producer
-          // see ProducerDefinition for full set of flags (all have sensible defaults)
-          "topic" : "foo", // mandatory
-          "messagesToSend" : "1000",
-          "sendBlocking": "false",
-          "messageSize" : "100000"
+      "consumers" : {
+        "config" : {
+            // Kafka config; applies to all consumers
+            "key.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+            "value.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+            "enable.auto.commit" : "true",
+            "auto.commit.interval.ms" : "1000",
+            "auto.offset.reset" : "earliest"
         },
-        {
-          // another producer
-          "topic" : "bar",
-          "messagesToSend" : "200",
-          "sendBlocking": "true",
-          "messageSize" : "10000"
-        }
-      ],
-      "consumers" : [
-        {
-          "config" : { // overrides the consumers config above
-            "timeout.ms" : "5000"
-          },
-          // see ConsumerDefinition for full set of flags
-          "topic" : "foo", // mandatory
-          "consumerGroupId", "bar" // mandatory
-        }
-      ]
+        "instances" : [
+          {
+            // see ConsumerDefinition for all properties
+            "config" : {
+              // Kafka config; just for this consumer
+              "timeout.ms" : "5000",
+              "group.id" : "foo1" // every consumer must define a unique one of these
+            },
+            "topic" : "foo"
+          }
+        ]
+      }
     }
 
 Example config are located in `src/test/resources/test-profiles`.
-
-Known issues:
-
-1. The test will not shutdown gracefully if producers are sending messages synchronously (`"producer.type" : "sync`) and are blocked. The producer API does not define timeouts - it's in an obscure flag. 
