@@ -5,6 +5,7 @@ import com.ameliant.tools.kafkaperf.drivers.TestProfileRunner;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,8 @@ public class KafkaPerf {
         try {
             String config = parser.parse(options, args).getOptionValue("config");
             try {
-                ObjectMapper mapper = new ObjectMapper();
+                ObjectMapper mapper = isYamlFile(config) ? new ObjectMapper(new YAMLFactory())
+                    : new ObjectMapper();
                 TestProfileDefinition testProfileDefinition = mapper.readValue(new File(config), TestProfileDefinition.class);
                 TestProfileRunner testProfileRunner = new TestProfileRunner(testProfileDefinition);
 
@@ -73,5 +75,10 @@ public class KafkaPerf {
             formatter.printHelp("kafka-perf-test", options);
         }
 
+    }
+
+    private static boolean isYamlFile(String fileName) {
+        assert (fileName != null);
+        return (fileName.endsWith("yml") || fileName.endsWith("yaml"));
     }
 }

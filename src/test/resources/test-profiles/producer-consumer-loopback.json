@@ -33,7 +33,7 @@
         "config" : {
           "group.id" : "bar"
         },
-        "messagesToReceive" : "10000"
+        "messagesToReceive" : "1000"
       }
     ]
   }

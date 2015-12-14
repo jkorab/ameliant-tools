@@ -68,7 +68,7 @@ public class ProducerDriver extends Driver {
                     Future<RecordMetadata> future = producer.send(record);
                     try {
                         // all sends are async, you need to get in order to block
-                        dumpOffset(future.get());
+                        traceOffset(future.get());
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException(e);
                     }
@@ -76,7 +76,7 @@ public class ProducerDriver extends Driver {
                     // callbacks for records being sent to the same partition are guaranteed to execute in order
                     producer.send(record, (recordMetadata, exception) -> {
                         if (exception == null) {
-                            dumpOffset(recordMetadata);
+                            traceOffset(recordMetadata);
                         } else {
                             throw new RuntimeException("Error sending to Kafka: " + exception.getMessage());
                         }
@@ -108,10 +108,10 @@ public class ProducerDriver extends Driver {
         return RandomStringUtils.randomAlphanumeric(messageSize);
     }
 
-    private void dumpOffset(RecordMetadata recordMetadata) {
+    private void traceOffset(RecordMetadata recordMetadata) {
         assert (recordMetadata != null);
-        if (log.isDebugEnabled()) {
-            log.debug("The partition:offset of the record sent was {}:{}",
+        if (log.isTraceEnabled()) {
+            log.trace("The partition:offset of the record sent was {}:{}",
                     recordMetadata.partition(), recordMetadata.offset());
         }
     }

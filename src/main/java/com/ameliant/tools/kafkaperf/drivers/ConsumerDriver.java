@@ -60,8 +60,8 @@ public class ConsumerDriver extends Driver {
                             throw new RuntimeException(e);
                         }
                     } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Fetched {} records", records.count());
+                        if (log.isTraceEnabled()) {
+                            log.trace("Fetched {} records", records.count());
                         }
                         for (ConsumerRecord<byte[], byte[]> record : records) {
                             recordsFetched += 1;
