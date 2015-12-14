@@ -1,4 +1,5 @@
 {
+  "concurrent" : "true",
   "consumers" : {
     "topic" : "foo",
     "config" : {
@@ -12,13 +13,15 @@
     },
     "instances" : [
       {
-        "messagesToReceive" : "10000"
+        "messagesToReceive" : "10000",
+        "receiveDelay" : "10"
       },
       {
         "config" : {
           "group.id" : "baz"
         },
-        "messagesToReceive" : "10000"
+        "messagesToReceive" : "10000",
+        "receiveDelay" : "10"
       }
     ]
   }

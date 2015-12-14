@@ -1,6 +1,6 @@
 {
   "config" : {
-    "bootstrap.servers" : "tcp://localhost:9020"
+    "bootstrap.servers" : "tcp://localhost:9092"
   },
   "autogenerateTopic" : "true",
   "producers" : {

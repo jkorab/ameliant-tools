@@ -1,30 +1,16 @@
 package com.ameliant.tools.kafkaperf.config;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author jkorab
  */
 public class ConsumerDefinition extends ConfigurableWithParent {
 
     private long messagesToReceive = 10000;
-    private String consumerGroupId;
     private long pollTimeout = 1000;
     private int reportReceivedEvery = 1000;
+    private int receiveDelay = 0;
 
     private long testRunTimeout = Long.MAX_VALUE;
-
-    public String getConsumerGroupId() {
-        return consumerGroupId;
-    }
-
-    public void setConsumerGroupId(String consumerGroupId) {
-        this.consumerGroupId = consumerGroupId;
-    }
 
     public long getMessagesToReceive() {
         return messagesToReceive;
@@ -58,4 +44,11 @@ public class ConsumerDefinition extends ConfigurableWithParent {
         this.reportReceivedEvery = reportReceivedEvery;
     }
 
+    public int getReceiveDelay() {
+        return receiveDelay;
+    }
+
+    public void setReceiveDelay(int receiveDelay) {
+        this.receiveDelay = receiveDelay;
+    }
 }

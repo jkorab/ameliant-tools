@@ -1,6 +1,6 @@
 {
   "config" : {
-    "bootstrap.servers" : "tcp://localhost:9020"
+    "bootstrap.servers" : "tcp://localhost:9092"
   },
   "producers" : {
     "config" : {
@@ -40,10 +40,19 @@
     "instances" : [
       {
         "config" : {
-          "timeout.ms" : "5000"
+          "timeout.ms" : "5000",
+          "groupId" : "foo1"
+
         },
-        "topic" : "foo",
-        "consumerGroupId" : "bar"
+        "topic" : "foo"
+      },
+      {
+        "config" : {
+          "timeout.ms" : "5000",
+          "groupId" : "bar2"
+
+        },
+        "topic" : "bar"
       }
     ]
   }

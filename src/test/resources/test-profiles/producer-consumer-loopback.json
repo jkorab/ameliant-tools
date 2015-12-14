@@ -1,16 +1,16 @@
 {
   "config" : {
-    "bootstrap.servers" : "tcp://localhost:9020"
+    "bootstrap.servers" : "tcp://localhost:9092"
   },
   "autogenerateTopic" : "true",
   "producers" : {
     "config" : {
-      "request.required.acks": "ackFromLeader",
-      "producer.type": "sync",
-      "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
-      "value.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
-      "batch.size": "0",
-      "request.timeout.ms" : "10000"
+      "request.timeout.ms" : "10000",
+      "key.serializer" : "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "value.serializer" : "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "batch.size" : "0",
+      "acks": "1",
+      "max.block.ms": "10000"
     },
     "instances" : [
       {
@@ -30,7 +30,10 @@
     },
     "instances" : [
       {
-        "consumerGroupId" : "bar"
+        "config" : {
+          "group.id" : "bar"
+        },
+        "messagesToReceive" : "10000"
       }
     ]
   }

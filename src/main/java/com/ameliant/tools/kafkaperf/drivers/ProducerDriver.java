@@ -41,6 +41,9 @@ public class ProducerDriver extends Driver {
     }
 
     public void run() {
+        // The producer is thread safe and sharing a single producer instance across threads will generally be
+        // faster than having multiple instances.
+        // {@see http://kafka.apache.org/090/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html}
         try (KafkaProducer producer = new KafkaProducer(producerDefinition.getKafkaConfig())) {
 
             String message = generateMessage(producerDefinition.getMessageSize());
@@ -58,6 +61,7 @@ public class ProducerDriver extends Driver {
                     break;
                 }
 
+                // we would use a key (optional second arg) if we were using a partitioning function
                 ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, message.getBytes());
 
                 if (producerDefinition.isSendBlocking()) {
@@ -74,7 +78,7 @@ public class ProducerDriver extends Driver {
                         if (exception == null) {
                             dumpOffset(recordMetadata);
                         } else {
-                            log.error("Error sending to Kafka: {}", exception.getMessage());
+                            throw new RuntimeException("Error sending to Kafka: " + exception.getMessage());
                         }
                     });
                 }

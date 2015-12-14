@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -32,6 +31,9 @@ public class ConsumerDriver extends Driver {
 
     @Override
     public void run() {
+        // A Consumer is not thread-safe
+        // {@see http://kafka.apache.org/090/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html}
+        // {@see http://kafka.apache.org/090/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html#multithreaded}
         try (KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(consumerDefinition.getKafkaConfig())) {
 
             String topic = consumerDefinition.getTopic();
@@ -63,6 +65,7 @@ public class ConsumerDriver extends Driver {
                         }
                         for (ConsumerRecord<byte[], byte[]> record : records) {
                             recordsFetched += 1;
+                            applyReceiveDelay();
                             if (recordsFetched % consumerDefinition.getReportReceivedEvery() == 0) {
                                 log.info("Received {} messages", recordsFetched);
                             }
@@ -90,6 +93,17 @@ public class ConsumerDriver extends Driver {
             log.debug("Consumer closed");
             if (latch != null) {
                 latch.countDown();
+            }
+        }
+    }
+
+    private void applyReceiveDelay() {
+        int receiveDelay = consumerDefinition.getReceiveDelay();
+        if (receiveDelay > 0) {
+            try {
+                Thread.sleep(receiveDelay);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
     }
