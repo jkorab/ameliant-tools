@@ -1,0 +1,27 @@
+{
+  "concurrent" : "false",
+  "producers" : {
+    "config" : {
+      "bootstrap.servers" : "tcp://localhost:9092",
+      "request.timeout.ms" : "10000",
+      "key.serializer" : "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "value.serializer" : "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "batch.size" : "0",
+      "acks": "1",
+      "max.block.ms": "10000"
+    },
+    "instances" : [
+      {
+        "keyAllocationStrategy" : {
+          "type" : "random",
+          "uniqueKeys" : "4"
+        },
+        "topic" : "foo",
+        "messagesToSend" : "2000",
+        "sendBlocking": "false",
+        "messageSize" : "1000",
+        "uniqueKeyCount" : "4"
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 package com.ameliant.tools.kafkaperf.drivers;
 
 import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
+import com.ameliant.tools.kafkaperf.drivers.keyallocation.KeyAllocationStrategy;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
@@ -59,20 +60,15 @@ public class ProducerDriver extends Driver {
 
             log.info("Producing {} messages to {}", messagesToSend, topic);
 
-            int uniqueKeyCount = producerDefinition.getUniqueKeyCount();
-            List<byte[]> keys = new ArrayList<>();
-            for (int i = 0; i < uniqueKeyCount; i++) {
-                // FIXME this allocates into different partitions on each run, tie into #1
-                keys.add(RandomStringUtils.randomAlphabetic(8).getBytes());
-            }
+            KeyAllocationStrategy keyAllocationStrategy = new KeyAllocationStrategy(producerDefinition.getKeyAllocationStrategy());
 
             for (int i = 0; i < messagesToSend; i++) {
                 if (isShuttingDown()) {
                     break;
                 }
 
-                // we would use a key (optional second arg) if we were using a partitioning function
-                byte[] key = keys.get(i % uniqueKeyCount);
+                // keys are used by the partitioning function to assign a partition
+                byte[] key = keyAllocationStrategy.getKey(i);
                 if (log.isTraceEnabled()) {
                     log.trace("Sending message {} with key {}", i, key);
                 }
@@ -96,6 +92,7 @@ public class ProducerDriver extends Driver {
                         }
                     });
                 }
+                // TODO add sendDelay
             }
 
             stopWatch.stop();
