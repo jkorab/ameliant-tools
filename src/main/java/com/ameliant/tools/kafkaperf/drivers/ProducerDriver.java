@@ -10,6 +10,8 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -56,13 +58,25 @@ public class ProducerDriver extends Driver {
             Validate.isTrue(messagesToSend > 0, "messagesToSend must be greater than 0");
 
             log.info("Producing {} messages to {}", messagesToSend, topic);
+
+            int uniqueKeyCount = producerDefinition.getUniqueKeyCount();
+            List<byte[]> keys = new ArrayList<>();
+            for (int i = 0; i < uniqueKeyCount; i++) {
+                // FIXME this allocates into different partitions on each run, tie into #1
+                keys.add(RandomStringUtils.randomAlphabetic(8).getBytes());
+            }
+
             for (int i = 0; i < messagesToSend; i++) {
                 if (isShuttingDown()) {
                     break;
                 }
 
                 // we would use a key (optional second arg) if we were using a partitioning function
-                ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, message.getBytes());
+                byte[] key = keys.get(i % uniqueKeyCount);
+                if (log.isTraceEnabled()) {
+                    log.trace("Sending message {} with key {}", i, key);
+                }
+                ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, message.getBytes());
 
                 if (producerDefinition.isSendBlocking()) {
                     Future<RecordMetadata> future = producer.send(record);

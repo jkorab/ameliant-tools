@@ -13,9 +13,10 @@
     "instances" : [
       {
         "topic" : "foo",
-        "messagesToSend" : "100000",
+        "messagesToSend" : "2000",
         "sendBlocking": "false",
-        "messageSize" : "1000"
+        "messageSize" : "1000",
+        "uniqueKeyCount" : "4"
       }
     ]
   }

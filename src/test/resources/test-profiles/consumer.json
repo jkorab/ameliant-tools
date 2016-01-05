@@ -12,13 +12,8 @@
     },
     "instances" : [
       {
-        "messagesToReceive" : "10000"
-      },
-      {
-        "config" : {
-          "group.id" : "baz"
-        },
-        "messagesToReceive" : "10000"
+        "messagesToReceive" : "50000",
+        "reportReceivedEvery" : "500"
       }
     ]
   }

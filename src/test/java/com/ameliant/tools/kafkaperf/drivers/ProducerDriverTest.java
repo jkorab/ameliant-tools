@@ -27,14 +27,7 @@ public class ProducerDriverTest {
 
     @Test
     public void testSend() {
-        Map<String, Object> producerConfigs = new ProducerConfigsBuilder()
-                .bootstrapServers(format("127.0.0.1:%s", broker.getPort()))
-                .requestRequiredAcks(ProducerConfigsBuilder.RequestRequiredAcks.ackFromLeader)
-                .producerType(ProducerConfigsBuilder.ProducerType.sync)
-                .keySerializer(ByteArraySerializer.class)
-                .valueSerializer(ByteArraySerializer.class)
-                .batchSize(0)
-                .build();
+        Map<String, Object> producerConfigs = getProducerConfigs();
 
         ProducerDefinition producerDefinition = new ProducerDefinition();
         producerDefinition.setConfig(producerConfigs);
@@ -45,6 +38,18 @@ public class ProducerDriverTest {
 
         ProducerDriver driver = new ProducerDriver(producerDefinition);
         driver.run();
+    }
+
+
+    private Map<String, Object> getProducerConfigs() {
+        return new ProducerConfigsBuilder()
+                    .bootstrapServers(format("127.0.0.1:%s", broker.getPort()))
+                    .requestRequiredAcks(ProducerConfigsBuilder.RequestRequiredAcks.ackFromLeader)
+                    .producerType(ProducerConfigsBuilder.ProducerType.sync)
+                    .keySerializer(ByteArraySerializer.class)
+                    .valueSerializer(ByteArraySerializer.class)
+                    .batchSize(0)
+                    .build();
     }
 
 }

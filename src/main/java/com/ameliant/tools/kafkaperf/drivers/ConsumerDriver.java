@@ -18,6 +18,7 @@ public class ConsumerDriver extends Driver {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ConsumerDefinition consumerDefinition;
     private CountDownLatch latch;
+    private long recordsFetched = 0;
 
     ConsumerDriver(ConsumerDefinition consumerDefinition) {
         Validate.notNull(consumerDefinition, "consumerDefinition is null");
@@ -40,7 +41,6 @@ public class ConsumerDriver extends Driver {
             log.info("Subscribing to {}", topic);
             consumer.subscribe(Collections.singletonList(topic));
 
-            long recordsFetched = 0;
             long messagesToReceive = consumerDefinition.getMessagesToReceive();
             log.info("Expecting {} messages", messagesToReceive);
 
@@ -106,5 +106,13 @@ public class ConsumerDriver extends Driver {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public long getMessagesReceived() {
+        return recordsFetched;
+    }
+
+    public long getMessagesExpected() {
+        return consumerDefinition.getMessagesToReceive();
     }
 }

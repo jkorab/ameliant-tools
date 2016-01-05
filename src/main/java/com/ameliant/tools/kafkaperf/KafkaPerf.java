@@ -3,6 +3,7 @@ package com.ameliant.tools.kafkaperf;
 import com.ameliant.tools.kafkaperf.config.TestProfileDefinition;
 import com.ameliant.tools.kafkaperf.drivers.TestProfileRunner;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -29,32 +30,42 @@ public class KafkaPerf {
 
     private final static Logger LOG = LoggerFactory.getLogger(KafkaPerf.class);
 
+    public static final String CONFIG = "config";
+    public static final String OUTPUT_FORMAT = "output-format";
+
     public static void main(String[] args) {
         CommandLineParser parser = new DefaultParser();
 
         Options options = new Options();
         options.addOption(Option.builder("c")
-                .longOpt("config")
+                .longOpt(CONFIG)
                 .desc("config file that defines the test profile(s) to run")
                 .hasArg()
                 .argName("FILE")
                 .required(true)
                 .build());
 
+        options.addOption(Option.builder("o")
+                .longOpt(OUTPUT_FORMAT)
+                .desc("the format of the parsed config to echo to console")
+                .hasArg()
+                .argName("yaml|json")
+                .required(false)
+                .build());
+
         boolean displayHelp = false;
         String errorMessage = null;
 
         try {
-            String config = parser.parse(options, args).getOptionValue("config");
+            CommandLine commandLine = parser.parse(options, args);
+            String config = commandLine.getOptionValue(CONFIG);
             try {
                 ObjectMapper mapper = isYamlFile(config) ? new ObjectMapper(new YAMLFactory())
                     : new ObjectMapper();
                 TestProfileDefinition testProfileDefinition = mapper.readValue(new File(config), TestProfileDefinition.class);
                 TestProfileRunner testProfileRunner = new TestProfileRunner(testProfileDefinition);
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(mapper.writeValueAsString(testProfileDefinition));
-                }
+                echoTestProfileDefinition(testProfileDefinition, commandLine.getOptionValue(OUTPUT_FORMAT));
                 testProfileRunner.run(); // TODO implement test reporting
             } catch (JsonMappingException | JsonParseException e) {
                 errorMessage = "Unable to parse " + config + ": " + e.getOriginalMessage();
@@ -77,8 +88,23 @@ public class KafkaPerf {
 
     }
 
+    private static void echoTestProfileDefinition(TestProfileDefinition testProfileDefinition, String outputFormat)
+            throws JsonProcessingException {
+        if (outputFormat != null) {
+            ObjectMapper mapper = isYaml(outputFormat) ? new ObjectMapper(new YAMLFactory())
+                    : new ObjectMapper();
+
+            LOG.info(System.lineSeparator() +
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(testProfileDefinition));
+        }
+    }
+
     private static boolean isYamlFile(String fileName) {
         assert (fileName != null);
-        return (fileName.endsWith("yml") || fileName.endsWith("yaml"));
+        return isYaml(fileName.substring(fileName.lastIndexOf(".") + 1));
+    }
+
+    private static boolean isYaml(String configType) {
+        return (configType.equals("yml") || configType.equals("yaml"));
     }
 }
