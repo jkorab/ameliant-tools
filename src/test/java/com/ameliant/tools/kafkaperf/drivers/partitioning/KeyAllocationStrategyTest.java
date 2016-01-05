@@ -1,4 +1,4 @@
-package com.ameliant.tools.kafkaperf.drivers.keyallocation;
+package com.ameliant.tools.kafkaperf.drivers.partitioning;
 
 import com.ameliant.tools.kafkaperf.config.KeyAllocationStrategyDefinition;
 import com.ameliant.tools.kafkaperf.config.KeyAllocationType;

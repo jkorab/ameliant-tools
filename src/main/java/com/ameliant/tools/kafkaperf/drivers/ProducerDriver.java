@@ -1,7 +1,7 @@
 package com.ameliant.tools.kafkaperf.drivers;
 
 import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
-import com.ameliant.tools.kafkaperf.drivers.keyallocation.KeyAllocationStrategy;
+import com.ameliant.tools.kafkaperf.drivers.partitioning.KeyAllocationStrategy;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
@@ -11,8 +11,6 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
