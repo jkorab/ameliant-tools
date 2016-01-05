@@ -8,6 +8,7 @@ import com.ameliant.tools.kafkaperf.resources.EmbeddedKafkaBroker;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ public class ProducerPartitioningTest {
             .zookeeperConnect("127.0.0.1:" + zooKeeper.getPort())
             .build();
 
-        @Test
+    @Test @Ignore
     public void testSend_partitions() throws InterruptedException {
         Map<String, Object> producerConfigs = getProducerConfigs();
 
@@ -75,7 +76,6 @@ public class ProducerPartitioningTest {
 
     }
 
-
     private Map<String, Object> getProducerConfigs() {
         return new ProducerConfigsBuilder()
                     .bootstrapServers("127.0.0.1:" + broker.getPort())
@@ -86,6 +86,7 @@ public class ProducerPartitioningTest {
                     .batchSize(0)
                     .build();
     }
+
     private ConsumerDriver createConsumerDriver(CountDownLatch latch, String topic, String groupId, int messageCount) {
         Map<String, Object> configs = new ConsumerConfigsBuilder()
                 .groupId(groupId)
