@@ -20,9 +20,9 @@ import static org.apache.kafka.common.utils.Utils.murmur2;
  *     <li>removed - keys for the missing partition will be reassigned a new partition</li>
  * </ul>
  *
- * FIXME This partitioner does not consistently allocate keys to a variable number of partitions.
- * Partitioning is based on round-robin sequence and message send time.
- * This will cause problems when there are two nodes running at the same time with this strategy.
+ * BE AWARE:
+ * Partitioning is based on round-robin sequence and message send time. This will cause problems when
+ * there are two nodes running at the same time with this strategy.
  *
  * @author jkorab
  */
