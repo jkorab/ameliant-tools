@@ -56,7 +56,7 @@ public class TestProfileRunner {
             try {
                 if (!latch.await(testProfileDefinition.getMaxDuration(), TimeUnit.SECONDS)) {
                     log.info("Shutting down gracefully");
-                    drivers.forEach(driver -> driver.markShuttingDown());
+                    drivers.forEach(driver -> driver.requestShutdown());
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

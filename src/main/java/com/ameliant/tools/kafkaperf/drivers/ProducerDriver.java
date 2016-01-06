@@ -1,16 +1,22 @@
 package com.ameliant.tools.kafkaperf.drivers;
 
+import com.ameliant.tools.kafkaperf.config.PartitioningStrategy;
 import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
 import com.ameliant.tools.kafkaperf.drivers.partitioning.KeyAllocationStrategy;
+import com.ameliant.tools.kafkaperf.drivers.partitioning.RoundRobinPartitioner;
+import com.ameliant.tools.kafkaperf.drivers.partitioning.StickyPartitioner;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -20,7 +26,6 @@ import java.util.concurrent.Future;
  */
 public class ProducerDriver extends Driver {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ProducerDefinition producerDefinition;
     private CountDownLatch latch;
 
@@ -41,11 +46,14 @@ public class ProducerDriver extends Driver {
                 '}';
     }
 
-    public void run() {
+    public void drive() {
         // The producer is thread safe and sharing a single producer instance across threads will generally be
         // faster than having multiple instances.
         // {@see http://kafka.apache.org/090/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html}
-        try (KafkaProducer producer = new KafkaProducer(producerDefinition.getKafkaConfig())) {
+        Map<String, Object> kafkaConfig = producerDefinition.getKafkaConfig();
+        applyConfigOverrides(kafkaConfig);
+
+        try (KafkaProducer producer = new KafkaProducer(kafkaConfig)) {
 
             String message = generateMessage(producerDefinition.getMessageSize());
             StopWatch stopWatch = new StopWatch();
@@ -61,7 +69,7 @@ public class ProducerDriver extends Driver {
             KeyAllocationStrategy keyAllocationStrategy = new KeyAllocationStrategy(producerDefinition.getKeyAllocationStrategy());
 
             for (int i = 0; i < messagesToSend; i++) {
-                if (isShuttingDown()) {
+                if (isShutdownRequested()) {
                     break;
                 }
 
@@ -94,7 +102,7 @@ public class ProducerDriver extends Driver {
             }
 
             stopWatch.stop();
-            if (isShuttingDown()) {
+            if (isShutdownRequested()) {
                 log.info("Shutting down");
             } else {
                 long runTime = stopWatch.getTime();
@@ -109,6 +117,34 @@ public class ProducerDriver extends Driver {
             if (latch != null) {
                 latch.countDown();
             }
+        }
+    }
+
+    private void applyConfigOverrides(Map<String, Object> kafkaConfig) {
+        log.debug("Applying config overrides");
+        PartitioningStrategy partitioningStrategy = producerDefinition.getPartitioningStrategy();
+        applyOverride(kafkaConfig, ProducerConfig.PARTITIONER_CLASS_CONFIG, getPartitionerClassName(partitioningStrategy));
+    }
+
+    private void applyOverride(Map<String, Object> kafkaConfig, String property, Optional<String> optionalValue) {
+        if (optionalValue.isPresent()) {
+            String value = optionalValue.get();
+            kafkaConfig.put(property, value);
+            log.debug("Overriding {} to {}", property, value);
+        } else {
+            log.debug("No override applied for {}", property);
+        }
+    }
+
+    private Optional<String> getPartitionerClassName(PartitioningStrategy partitioningStrategy) {
+        if ((partitioningStrategy == null) || (partitioningStrategy == PartitioningStrategy.none)) {
+            return Optional.empty();
+        } else if (partitioningStrategy.equals(PartitioningStrategy.roundRobin)) {
+            return Optional.of(RoundRobinPartitioner.class.getCanonicalName());
+        } else if (partitioningStrategy.equals(PartitioningStrategy.sticky)) {
+            return Optional.of(StickyPartitioner.class.getCanonicalName());
+        } else {
+            throw new IllegalArgumentException("Unrecognised partitioningStrategy: " + partitioningStrategy);
         }
     }
 

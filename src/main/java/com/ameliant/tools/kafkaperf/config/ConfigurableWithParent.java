@@ -29,7 +29,7 @@ public abstract class ConfigurableWithParent extends Configurable {
     }
 
     /**
-     * Get the merged config of this object and its parent. If the Caches the result, so any changes to this config will not show up.
+     * Get the merged config of this object and its parent. This method caches the result, so any changes to this config will not show up.
      * @return The merged config of this object and its parent.
      */
     @Override
@@ -42,7 +42,7 @@ public abstract class ConfigurableWithParent extends Configurable {
         if (_mergedConfig == null) { // lazy init
             _mergedConfig = merge(parent.getKafkaConfig(), config);
         }
-        return Collections.unmodifiableMap(_mergedConfig);
+        return _mergedConfig;
     }
 
     /**

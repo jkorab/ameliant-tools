@@ -7,6 +7,7 @@ import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.SystemTime$;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.Validate;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +34,10 @@ public class EmbeddedKafkaBroker extends ExternalResource {
         private String hostname = "localhost";
         private int port = AvailablePortFinder.getNextAvailable();
         private int brokerId = 1;
-        private boolean enableZookeeper = false;
         private Long logFlushIntervalMessages;
 
         public Builder brokerId(int brokerId) {
             this.brokerId = brokerId;
-            return this;
-        }
-
-        public Builder enableZookeeper(boolean enableZookeeper) {
-            this.enableZookeeper = enableZookeeper;
             return this;
         }
 
@@ -68,16 +63,24 @@ public class EmbeddedKafkaBroker extends ExternalResource {
             return this;
         }
 
+        private int numPartitions = 1;
+
+        public Builder numPartitions(int numPartitions) {
+            Validate.isTrue(numPartitions > 0, "numPartitions must be greater than 0");
+            this.numPartitions = numPartitions;
+            return this;
+        }
+
         public EmbeddedKafkaBroker build() {
             Properties props = new Properties();
-            props.setProperty("hostname", hostname);
-            props.setProperty("port", Integer.toString(port));
-            props.setProperty("broker.id", Integer.toString(brokerId));
-            props.setProperty("enable.zookeeper", Boolean.toString(enableZookeeper));
-            props.setProperty("zookeeper.connect", zookeeperConnect);
+            props.setProperty(KafkaConfig.HostNameProp(), hostname);
+            props.setProperty(KafkaConfig.PortProp(), Integer.toString(port));
+            props.setProperty(KafkaConfig.BrokerIdProp(), Integer.toString(brokerId));
+            props.setProperty(KafkaConfig.ZkConnectProp(), zookeeperConnect);
+            props.setProperty(KafkaConfig.NumPartitionsProp(), Integer.toString(numPartitions));
 
             if (logFlushIntervalMessages != null) {
-                props.setProperty("log.flush.interval.messages", logFlushIntervalMessages.toString());
+                props.setProperty(KafkaConfig.LogFlushIntervalMessagesProp(), logFlushIntervalMessages.toString());
             }
 
             return new EmbeddedKafkaBroker(props, port);
@@ -97,7 +100,7 @@ public class EmbeddedKafkaBroker extends ExternalResource {
     @Override
     protected void before() throws Throwable {
         logDirectory = tempDir(perTest("kafka-log"));
-        properties.setProperty("log.dir", logDirectory.getCanonicalPath());
+        properties.setProperty(KafkaConfig.LogDirProp(), logDirectory.getCanonicalPath());
         kafkaServer = new KafkaServer(new KafkaConfig(properties), SystemTime$.MODULE$, Some$.MODULE$.apply("kafkaServer"));
         kafkaServer.startup();
     }

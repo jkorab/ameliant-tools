@@ -15,7 +15,6 @@ import java.util.concurrent.CountDownLatch;
  */
 public class ConsumerDriver extends Driver {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ConsumerDefinition consumerDefinition;
     private CountDownLatch latch;
     private long recordsFetched = 0;
@@ -31,7 +30,7 @@ public class ConsumerDriver extends Driver {
     }
 
     @Override
-    public void run() {
+    public void drive() {
         // A Consumer is not thread-safe
         // {@see http://kafka.apache.org/090/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html}
         // {@see http://kafka.apache.org/090/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html#multithreaded}
@@ -57,7 +56,7 @@ public class ConsumerDriver extends Driver {
                             log.info("No records fetched, pausing");
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
+                            throw new RuntimeException(e); // TODO more grace needed - thrown on sticky session test
                         }
                     } else {
                         if (log.isTraceEnabled()) {
@@ -74,12 +73,12 @@ public class ConsumerDriver extends Driver {
                 }
 
                 stopWatch.split();
-            } while ((!isShuttingDown())
+            } while ((!isShutdownRequested())
                     && (recordsFetched < messagesToReceive)
                     && (stopWatch.getSplitTime() < consumerDefinition.getTestRunTimeout()));
 
             stopWatch.stop();
-            if (isShuttingDown()) {
+            if (isShutdownRequested()) {
                 log.info("Shutting down");
             } else {
                 long runTime = stopWatch.getTime();

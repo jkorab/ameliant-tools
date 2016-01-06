@@ -13,6 +13,11 @@ public class ProducerDefinition extends ConfigurableWithParent {
     private int uniqueKeyCount = 1; // how many unique keys should be used for partitioning
     private KeyAllocationStrategyDefinition keyAllocationStrategyDefinition =
             new KeyAllocationStrategyDefinition(KeyAllocationType.fair, 1);
+    /**
+     * Any value here other than {@see PartitioningStrategy.none} will override the value of
+     * <code>partitioner.class</code> in the producer config.
+     */
+    private PartitioningStrategy partitioningStrategy = PartitioningStrategy.none;
 
     @Override
     public String toString() {
@@ -26,6 +31,7 @@ public class ProducerDefinition extends ConfigurableWithParent {
                 ", messagesToSend=" + messagesToSend +
                 ", messageSize=" + messageSize +
                 ", sendBlocking=" + sendBlocking +
+                ", partitioningStrategy=" + partitioningStrategy +
                 ", mergedConfig={" + mergedConfig + "}" +
                 '}';
     }
@@ -54,20 +60,19 @@ public class ProducerDefinition extends ConfigurableWithParent {
         this.messageSize = messageSize;
     }
 
-    public int getUniqueKeyCount() {
-        return uniqueKeyCount;
-    }
-
-    public void setUniqueKeyCount(int uniqueKeyCount) {
-        Validate.isTrue(uniqueKeyCount > 0, "uniqueKeyCount must be greater than 0");
-        this.uniqueKeyCount = uniqueKeyCount;
-    }
-
     public KeyAllocationStrategyDefinition getKeyAllocationStrategy() {
         return keyAllocationStrategyDefinition;
     }
 
     public void setKeyAllocationStrategy(KeyAllocationStrategyDefinition keyAllocationStrategyDefinition) {
         this.keyAllocationStrategyDefinition = keyAllocationStrategyDefinition;
+    }
+
+    public PartitioningStrategy getPartitioningStrategy() {
+        return partitioningStrategy;
+    }
+
+    public void setPartitioningStrategy(PartitioningStrategy partitioningStrategy) {
+        this.partitioningStrategy = partitioningStrategy;
     }
 }

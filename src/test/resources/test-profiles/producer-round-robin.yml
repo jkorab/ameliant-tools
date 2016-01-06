@@ -1,0 +1,18 @@
+---
+config: {} # applies to all producers and consumers
+producers:
+  config:  # applies to all producers
+    bootstrap.servers: "tcp://localhost:9092"
+    request.timeout.ms: "10000"
+    key.serializer: "org.apache.kafka.common.serialization.ByteArraySerializer"
+    value.serializer: "org.apache.kafka.common.serialization.ByteArraySerializer"
+    batch.size: "0"
+    acks: "1"
+    max.block.ms: "10000"
+  instances:
+  - config: {} # applies to this producer
+    topic: "foo"
+    messagesToSend: 2000
+    messageSize: 1000
+    sendBlocking: false
+    partitioningStrategy: "roundRobin"
