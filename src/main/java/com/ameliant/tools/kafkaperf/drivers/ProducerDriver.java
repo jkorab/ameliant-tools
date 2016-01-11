@@ -13,10 +13,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -29,16 +26,16 @@ import java.util.concurrent.Future;
 public class ProducerDriver extends Driver {
 
     private final ProducerDefinition producerDefinition;
-    private CountDownLatch latch;
+    private CountDownLatch completionLatch;
 
     ProducerDriver(ProducerDefinition producerDefinition) {
         Validate.notNull(producerDefinition, "producerDefinition is null");
         this.producerDefinition = producerDefinition;
     }
 
-    ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch latch) {
+    ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch completionLatch) {
         this(producerDefinition);
-        this.latch = latch;
+        this.completionLatch = completionLatch;
     }
 
     @Override
@@ -122,8 +119,8 @@ public class ProducerDriver extends Driver {
             log.error("Producer interrupted.");
         } finally {
             log.debug("Producer closed");
-            if (latch != null) {
-                latch.countDown();
+            if (completionLatch != null) {
+                completionLatch.countDown();
             }
         }
     }

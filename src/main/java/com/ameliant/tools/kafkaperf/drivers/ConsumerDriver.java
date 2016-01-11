@@ -4,11 +4,11 @@ import com.ameliant.tools.kafkaperf.config.ConsumerDefinition;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.kafka.clients.consumer.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 
 /**
  * @author jkorab
@@ -16,17 +16,22 @@ import java.util.concurrent.CountDownLatch;
 public class ConsumerDriver extends Driver {
 
     private final ConsumerDefinition consumerDefinition;
-    private CountDownLatch latch;
+    private CountDownLatch completionLatch;
     private long recordsFetched = 0;
+    private ConsumerRebalanceListener consumerRebalanceListener;
+
+    public void setConsumerRebalanceListener(ConsumerRebalanceListener consumerRebalanceListener) {
+        this.consumerRebalanceListener = consumerRebalanceListener;
+    }
 
     ConsumerDriver(ConsumerDefinition consumerDefinition) {
         Validate.notNull(consumerDefinition, "consumerDefinition is null");
         this.consumerDefinition = consumerDefinition;
     }
 
-    ConsumerDriver(ConsumerDefinition consumerDefinition, CountDownLatch latch) {
+    ConsumerDriver(ConsumerDefinition consumerDefinition, CountDownLatch completionLatch) {
         this(consumerDefinition);
-        this.latch = latch;
+        this.completionLatch = completionLatch;
     }
 
     @Override
@@ -38,7 +43,11 @@ public class ConsumerDriver extends Driver {
 
             String topic = consumerDefinition.getTopic();
             log.info("Subscribing to {}", topic);
-            consumer.subscribe(Collections.singletonList(topic));
+            if (consumerRebalanceListener == null) {
+                consumer.subscribe(Collections.singletonList(topic));
+            } else {
+                consumer.subscribe(Collections.singletonList(topic), consumerRebalanceListener);
+            }
 
             long messagesToReceive = consumerDefinition.getMessagesToReceive();
             log.info("Expecting {} messages", messagesToReceive);
@@ -90,8 +99,8 @@ public class ConsumerDriver extends Driver {
 
         } finally {
             log.debug("Consumer closed");
-            if (latch != null) {
-                latch.countDown();
+            if (completionLatch != null) {
+                completionLatch.countDown();
             }
         }
     }

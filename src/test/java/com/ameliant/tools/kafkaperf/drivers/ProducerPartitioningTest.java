@@ -4,7 +4,9 @@ import com.ameliant.tools.kafkaperf.config.*;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedKafkaBroker;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
 import com.ameliant.tools.kafkaperf.coordination.AwaitsStartup;
-import com.ameliant.tools.kafkaperf.coordination.SignalsStartup;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Rule;
@@ -13,12 +15,14 @@ import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author jkorab
@@ -57,7 +61,10 @@ public class ProducerPartitioningTest {
             // fill up the topic
             executorService.submit(new AwaitsStartup(producer, startUpLatch));
             consumerDrivers.stream()
-                    .forEach(consumer -> executorService.submit(new SignalsStartup(consumer, startUpLatch)));
+                    .forEach(consumer -> {
+                        consumer.setConsumerRebalanceListener(waitForPartitionAssignment(startUpLatch));
+                        executorService.submit(consumer);
+                    });
 
             if (!latch.await(10, TimeUnit.SECONDS)) {
                 String consumerResults = getConsumerResults(consumerDrivers);
@@ -70,6 +77,20 @@ public class ProducerPartitioningTest {
             executorService.shutdownNow();
         }
 
+    }
+
+    private ConsumerRebalanceListener waitForPartitionAssignment(CountDownLatch latch) {
+        return new ConsumerRebalanceListener() {
+
+            @Override
+            public void onPartitionsAssigned(Collection<TopicPartition> collection) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onPartitionsRevoked(Collection<TopicPartition> collection) {}
+
+        };
     }
 
     @Test
@@ -93,7 +114,10 @@ public class ProducerPartitioningTest {
             // fill up the topic
             executorService.submit(new AwaitsStartup(producer, startUpLatch));
             consumerDrivers.stream()
-                    .forEach(consumer -> executorService.submit(new SignalsStartup(consumer, startUpLatch)));
+                    .forEach(consumer -> {
+                        consumer.setConsumerRebalanceListener(waitForPartitionAssignment(startUpLatch));
+                        executorService.submit(consumer);
+                    });
 
             if (!latch.await(10, TimeUnit.SECONDS)) {
                 // one of the consumers will expire
