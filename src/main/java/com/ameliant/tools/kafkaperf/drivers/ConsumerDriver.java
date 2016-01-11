@@ -65,7 +65,7 @@ public class ConsumerDriver extends Driver {
                             log.info("No records fetched, pausing");
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e); // TODO more grace needed - thrown on sticky session test
+                            throw new RuntimeException(e); // FIXME sticky partitioning test ignores shutdown flag
                         }
                     } else {
                         if (log.isTraceEnabled()) {
