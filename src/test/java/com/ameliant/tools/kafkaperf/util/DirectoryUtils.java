@@ -24,4 +24,13 @@ public class DirectoryUtils {
         return new File(tempDirString(suffix));
     }
 
+    public static File locateDirectory(String path) {
+        if (path == null) {
+            return null;
+        }
+        File dir = new File(path);
+        return (dir.exists() && dir.isDirectory()) ? dir
+                : locateDirectory(path.substring(path.indexOf('/')));
+    }
+
 }

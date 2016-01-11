@@ -19,8 +19,7 @@
         "topic" : "foo",
         "messagesToSend" : "2000",
         "sendBlocking": "false",
-        "messageSize" : "1000",
-        "uniqueKeyCount" : "4"
+        "messageSize" : "1000"
       }
     ]
   }

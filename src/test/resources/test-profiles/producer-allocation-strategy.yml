@@ -12,7 +12,6 @@ producers:
   - topic: "foo"
     messagesToSend: 20
     messageSize: 1000
-    uniqueKeyCount: 4
     keyAllocationStrategy:
       type: "random"
       uniqueKeys: 4

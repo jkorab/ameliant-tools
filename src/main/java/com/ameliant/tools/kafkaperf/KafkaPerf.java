@@ -2,6 +2,7 @@ package com.ameliant.tools.kafkaperf;
 
 import com.ameliant.tools.kafkaperf.config.TestProfileDefinition;
 import com.ameliant.tools.kafkaperf.drivers.TestProfileRunner;
+import com.ameliant.tools.kafkaperf.util.PayloadDetector;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -60,7 +61,7 @@ public class KafkaPerf {
             CommandLine commandLine = parser.parse(options, args);
             String config = commandLine.getOptionValue(CONFIG);
             try {
-                ObjectMapper mapper = isYamlFile(config) ? new ObjectMapper(new YAMLFactory())
+                ObjectMapper mapper = PayloadDetector.isYamlFile(config) ? new ObjectMapper(new YAMLFactory())
                     : new ObjectMapper();
                 TestProfileDefinition testProfileDefinition = mapper.readValue(new File(config), TestProfileDefinition.class);
                 TestProfileRunner testProfileRunner = new TestProfileRunner(testProfileDefinition);
@@ -91,7 +92,7 @@ public class KafkaPerf {
     private static void echoTestProfileDefinition(TestProfileDefinition testProfileDefinition, String outputFormat)
             throws JsonProcessingException {
         if (outputFormat != null) {
-            ObjectMapper mapper = isYaml(outputFormat) ? new ObjectMapper(new YAMLFactory())
+            ObjectMapper mapper = PayloadDetector.isYaml(outputFormat) ? new ObjectMapper(new YAMLFactory())
                     : new ObjectMapper();
 
             LOG.info(System.lineSeparator() +
@@ -99,12 +100,4 @@ public class KafkaPerf {
         }
     }
 
-    private static boolean isYamlFile(String fileName) {
-        assert (fileName != null);
-        return isYaml(fileName.substring(fileName.lastIndexOf(".") + 1));
-    }
-
-    private static boolean isYaml(String configType) {
-        return (configType.equals("yml") || configType.equals("yaml"));
-    }
 }
