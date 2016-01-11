@@ -10,6 +10,11 @@ public class ProducerDefinition extends ConfigurableWithParent {
     private long sendDelay = 0;
     private long messagesToSend = 10000;
     private int messageSize = 1024;
+    /**
+     * Location of a file to use as the message payload. If provided, driver will not generate its own payloads
+     * and {@link #messageSize} will be ignored.
+     */
+    private String messageLocation;
     private boolean sendBlocking = false;
     private KeyAllocationStrategyDefinition keyAllocationStrategyDefinition =
             new KeyAllocationStrategyDefinition(KeyAllocationType.fair, 1);
@@ -31,6 +36,7 @@ public class ProducerDefinition extends ConfigurableWithParent {
                 ", sendDelay=" + sendDelay +
                 ", messagesToSend=" + messagesToSend +
                 ", messageSize=" + messageSize +
+                ", messageLocation=" + messageLocation +
                 ", sendBlocking=" + sendBlocking +
                 ", partitioningStrategy=" + partitioningStrategy +
                 ", mergedConfig={" + mergedConfig + "}" +
@@ -83,5 +89,13 @@ public class ProducerDefinition extends ConfigurableWithParent {
 
     public void setPartitioningStrategy(PartitioningStrategy partitioningStrategy) {
         this.partitioningStrategy = partitioningStrategy;
+    }
+
+    public String getMessageLocation() {
+        return messageLocation;
+    }
+
+    public void setMessageLocation(String messageLocation) {
+        this.messageLocation = messageLocation;
     }
 }

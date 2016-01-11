@@ -5,6 +5,7 @@ import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
 import com.ameliant.tools.kafkaperf.drivers.partitioning.KeyAllocationStrategy;
 import com.ameliant.tools.kafkaperf.drivers.partitioning.RoundRobinPartitioner;
 import com.ameliant.tools.kafkaperf.drivers.partitioning.StickyPartitioner;
+import com.ameliant.tools.kafkaperf.util.FileLoader;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.time.StopWatch;
@@ -15,6 +16,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -55,7 +57,7 @@ public class ProducerDriver extends Driver {
 
         try (KafkaProducer producer = new KafkaProducer(kafkaConfig)) {
 
-            String message = generateMessage(producerDefinition.getMessageSize());
+            String message = generateMessage(producerDefinition.getMessageLocation(), producerDefinition.getMessageSize());
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -154,9 +156,14 @@ public class ProducerDriver extends Driver {
         }
     }
 
-    private String generateMessage(int messageSize) {
-        Validate.isTrue(messageSize > 0, "messageSize must be greater than 0");
-        return RandomStringUtils.randomAlphanumeric(messageSize);
+    private String generateMessage(String messageLocation, int messageSize) {
+        if (messageLocation == null) {
+            Validate.isTrue(messageSize > 0, "messageSize must be greater than 0");
+            return RandomStringUtils.randomAlphanumeric(messageSize);
+        } else {
+            log.debug("Loading payload from {}", messageLocation);
+            return new FileLoader().loadFileAsString(messageLocation);
+        }
     }
 
     private void traceOffset(RecordMetadata recordMetadata) {
@@ -166,4 +173,6 @@ public class ProducerDriver extends Driver {
                     recordMetadata.partition(), recordMetadata.offset());
         }
     }
+
+
 }
