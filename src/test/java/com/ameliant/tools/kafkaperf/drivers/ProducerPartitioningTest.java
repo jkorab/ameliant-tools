@@ -3,6 +3,8 @@ package com.ameliant.tools.kafkaperf.drivers;
 import com.ameliant.tools.kafkaperf.config.*;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedKafkaBroker;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
+import com.ameliant.tools.kafkaperf.coordination.AwaitsStartup;
+import com.ameliant.tools.kafkaperf.coordination.SignalsStartup;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Rule;
@@ -11,7 +13,6 @@ import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -42,6 +43,7 @@ public class ProducerPartitioningTest {
         producerDefinition.setPartitioningStrategy(PartitioningStrategy.roundRobin);
 
         int numConsumers = 3;
+        CountDownLatch startUpLatch = new CountDownLatch(numConsumers);
         CountDownLatch latch = new CountDownLatch(numConsumers + 1);
 
         ProducerDriver producer = new ProducerDriver(producerDefinition, latch);
@@ -53,9 +55,9 @@ public class ProducerPartitioningTest {
         ExecutorService executorService = Executors.newFixedThreadPool(numConsumers + 1);
         try {
             // fill up the topic
-            executorService.submit(producer);
+            executorService.submit(new AwaitsStartup(producer, startUpLatch));
             consumerDrivers.stream()
-                    .forEach(consumer -> executorService.submit(consumer));
+                    .forEach(consumer -> executorService.submit(new SignalsStartup(consumer, startUpLatch)));
 
             if (!latch.await(10, TimeUnit.SECONDS)) {
                 String consumerResults = getConsumerResults(consumerDrivers);
@@ -77,6 +79,7 @@ public class ProducerPartitioningTest {
         producerDefinition.setPartitioningStrategy(PartitioningStrategy.sticky);
 
         int numConsumers = 3;
+        CountDownLatch startUpLatch = new CountDownLatch(numConsumers);
         CountDownLatch latch = new CountDownLatch(numConsumers + 1);
 
         ProducerDriver producer = new ProducerDriver(producerDefinition, latch);
@@ -88,9 +91,9 @@ public class ProducerPartitioningTest {
         ExecutorService executorService = Executors.newFixedThreadPool(numConsumers + 1);
         try {
             // fill up the topic
-            executorService.submit(producer);
+            executorService.submit(new AwaitsStartup(producer, startUpLatch));
             consumerDrivers.stream()
-                    .forEach(consumer -> executorService.submit(consumer));
+                    .forEach(consumer -> executorService.submit(new SignalsStartup(consumer, startUpLatch)));
 
             if (!latch.await(10, TimeUnit.SECONDS)) {
                 // one of the consumers will expire
