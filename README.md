@@ -1,6 +1,8 @@
 # kafka-perf-test
 A command-line performance test tool for Apache Kafka
 
+[![Build Status](https://travis-ci.org/jkorab/kafka-perf-test.svg)]
+
 This tool runs an arbitrary number of consumers and producers concurrently against a Kafka cluster.
 The tool currently runs against Kafka 0.9.0 only.
 
