@@ -5,7 +5,14 @@ package com.ameliant.tools.kafkaperf.config;
  */
 public class KeyAllocationStrategyDefinition {
 
+    /**
+     * How keys are allocated to each message.
+     */
     private KeyAllocationType type;
+
+    /**
+     * How many unique keys are used.
+     */
     private int uniqueKeys;
 
     // for Jackson

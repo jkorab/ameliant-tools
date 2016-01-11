@@ -7,10 +7,10 @@ import org.apache.commons.lang.Validate;
  */
 public class ProducerDefinition extends ConfigurableWithParent {
 
+    private long sendDelay = 0;
     private long messagesToSend = 10000;
     private int messageSize = 1024;
     private boolean sendBlocking = false;
-    private int uniqueKeyCount = 1; // how many unique keys should be used for partitioning
     private KeyAllocationStrategyDefinition keyAllocationStrategyDefinition =
             new KeyAllocationStrategyDefinition(KeyAllocationType.fair, 1);
     /**
@@ -28,12 +28,21 @@ public class ProducerDefinition extends ConfigurableWithParent {
 
         return "ProducerDefinition{" +
                 "topic='" + getTopic() + '\'' +
+                ", sendDelay=" + sendDelay +
                 ", messagesToSend=" + messagesToSend +
                 ", messageSize=" + messageSize +
                 ", sendBlocking=" + sendBlocking +
                 ", partitioningStrategy=" + partitioningStrategy +
                 ", mergedConfig={" + mergedConfig + "}" +
                 '}';
+    }
+
+    public long getSendDelay() {
+        return sendDelay;
+    }
+
+    public void setSendDelay(long sendDelay) {
+        this.sendDelay = sendDelay;
     }
 
     public boolean isSendBlocking() {

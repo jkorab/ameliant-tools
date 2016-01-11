@@ -98,7 +98,11 @@ public class ProducerDriver extends Driver {
                         }
                     });
                 }
-                // TODO add sendDelay
+                long sendDelay = producerDefinition.getSendDelay();
+                if (sendDelay > 0) {
+                    log.trace("Delaying send by {}", sendDelay);
+                    Thread.sleep(sendDelay);
+                }
             }
 
             stopWatch.stop();
@@ -112,6 +116,8 @@ public class ProducerDriver extends Driver {
                 log.info("Average throughput: {} msg/s", averageThroughput);
             }
 
+        } catch (InterruptedException e) {
+            log.error("Producer interrupted.");
         } finally {
             log.debug("Producer closed");
             if (latch != null) {

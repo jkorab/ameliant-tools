@@ -11,8 +11,9 @@ producers:
     max.block.ms: "10000"
   instances:
   - config: {} # applies to this producer
-    topic: "foo"
+    topic: "foo1"
     messagesToSend: 2000
     messageSize: 1000
     sendBlocking: false
+    sendDelay: 1000
     partitioningStrategy: "roundRobin"
