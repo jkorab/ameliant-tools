@@ -13,14 +13,14 @@ To run:
 
 The tool accepts a single argument, which is the location of a config file that details
 the behaviour of the producers and consumers (collectively referred to as clients). The config file can be either
-JSON or YAML; the right parser is auto-detected based on config file extension (YAML = .yaml or .yml).
+JSON or YAML; the right parser is auto-detected based on config file extension (YAML = `.yaml` or `.yml`).
 
 Since Kafka clients each need their own Kafka config (a bag of properties for which you need
 to look at [the manual](http://kafka.apache.org/documentation.html#configuration)),
 the config format supports overrides in `config` blocks at each level to keep the file nice and DRY - and to keep you sane :)
 Lower-lever config is merged with, and in the process overrides, config defined at a higher-level.
 
-Lots of exciting example configs are located in `src/test/resources/test-profiles`.
+See the [Users Guide] (docs/UsersGuide.md) for a description of using this tool, and its configuration.
 
 Example (pseudo-)JSON config (doesn't really do comments):
 
