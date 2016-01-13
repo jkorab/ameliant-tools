@@ -1,5 +1,6 @@
-package com.ameliant.tools.kafkaperf.resources;
+package com.ameliant.tools.kafkaperf.resources.kafka;
 
+import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,7 +14,7 @@ public class EmbeddedKafkaBrokerTest {
     public EmbeddedZooKeeper zooKeeper = new EmbeddedZooKeeper();
 
     @Rule
-    public EmbeddedKafkaBroker broker = new EmbeddedKafkaBroker.Builder()
+    public EmbeddedKafkaBroker broker = EmbeddedKafkaBroker.builder()
             .zookeeperConnect("127.0.0.1:" + zooKeeper.getPort())
             .build();
 

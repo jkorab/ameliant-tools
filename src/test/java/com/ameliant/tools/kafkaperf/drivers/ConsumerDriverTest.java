@@ -4,7 +4,8 @@ import com.ameliant.tools.kafkaperf.config.ConsumerConfigsBuilder;
 import com.ameliant.tools.kafkaperf.config.ConsumerDefinition;
 import com.ameliant.tools.kafkaperf.config.ProducerConfigsBuilder;
 import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
-import com.ameliant.tools.kafkaperf.resources.EmbeddedKafkaBroker;
+import com.ameliant.tools.kafkaperf.resources.kafka.BrokerBuilder;
+import com.ameliant.tools.kafkaperf.resources.kafka.EmbeddedKafkaBroker;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -27,7 +28,7 @@ public class ConsumerDriverTest {
     public EmbeddedZooKeeper zooKeeper = new EmbeddedZooKeeper();
 
     @Rule
-    public EmbeddedKafkaBroker broker = new EmbeddedKafkaBroker.Builder()
+    public EmbeddedKafkaBroker broker = EmbeddedKafkaBroker.builder()
             .zookeeperConnect("127.0.0.1:" + zooKeeper.getPort())
             //.logFlushIntervalMessages(1)
             .build();

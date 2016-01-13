@@ -66,6 +66,7 @@ public class ProducerDriver extends Driver {
             log.info("Producing {} messages to {}", messagesToSend, topic);
 
             KeyAllocationStrategy keyAllocationStrategy = new KeyAllocationStrategy(producerDefinition.getKeyAllocationStrategy());
+            log.debug("KeyAllocationStrategy is {}", keyAllocationStrategy);
 
             for (int i = 0; i < messagesToSend; i++) {
                 if (isShutdownRequested()) {
@@ -166,8 +167,8 @@ public class ProducerDriver extends Driver {
     private void traceOffset(RecordMetadata recordMetadata) {
         assert (recordMetadata != null);
         if (log.isTraceEnabled()) {
-            log.trace("The partition:offset of the record sent was {}:{}",
-                    recordMetadata.partition(), recordMetadata.offset());
+            log.trace("The [topic:partition:offset] of the record sent was [{}:{}:{}]",
+                    recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset());
         }
     }
 

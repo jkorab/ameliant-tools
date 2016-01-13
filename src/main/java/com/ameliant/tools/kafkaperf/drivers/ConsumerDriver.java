@@ -65,7 +65,7 @@ public class ConsumerDriver extends Driver {
                             log.info("No records fetched, pausing");
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e); // FIXME sticky partitioning test ignores shutdown flag
+                            throw new RuntimeException(e);
                         }
                     } else {
                         if (log.isTraceEnabled()) {
@@ -81,9 +81,11 @@ public class ConsumerDriver extends Driver {
                     }
                 }
 
+                if (isShutdownRequested()) {
+                    break;
+                }
                 stopWatch.split();
-            } while ((!isShutdownRequested())
-                    && (recordsFetched < messagesToReceive)
+            } while ((recordsFetched < messagesToReceive)
                     && (stopWatch.getSplitTime() < consumerDefinition.getTestRunTimeout()));
 
             stopWatch.stop();

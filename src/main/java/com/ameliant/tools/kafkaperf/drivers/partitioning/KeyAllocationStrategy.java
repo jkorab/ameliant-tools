@@ -16,6 +16,7 @@ import java.util.Random;
  */
 public class KeyAllocationStrategy {
 
+    private final KeyAllocationType keyAllocationType;
     protected final int uniqueKeys;
     protected final List<byte[]> keys = new ArrayList<>();
 
@@ -23,7 +24,7 @@ public class KeyAllocationStrategy {
         uniqueKeys = strategyDefinition.getUniqueKeys();
         Validate.isTrue(uniqueKeys > 0, "uniqueKeys must be greater than 0");
 
-        KeyAllocationType keyAllocationType = strategyDefinition.getType();
+        keyAllocationType = strategyDefinition.getType();
         Validate.notNull(keyAllocationType, "keyAllocationType is null");
 
         Random random = new Random();
@@ -34,6 +35,14 @@ public class KeyAllocationStrategy {
                 keys.add(asByteArray(random.nextInt()));
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "KeyAllocationStrategy{" +
+                "keyAllocationType=" + keyAllocationType +
+                ", uniqueKeys=" + uniqueKeys +
+                '}';
     }
 
     /**
