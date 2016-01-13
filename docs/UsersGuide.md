@@ -66,6 +66,8 @@ All other properties are bound to field in the tool's
 are not correctly defined. Most fields are optional, so if is perfectly reasonable to omit them if not needed; you can 
 for example define consumers only, or producers only, or not define `config` at some level.
 
+The top-level element is a `TestProfileDefinition`.
+
 ### TestProfileDefinition
 
 * `config` - a map of Kafka properties that apply to all producers and consumers
@@ -74,7 +76,7 @@ for example define consumers only, or producers only, or not define `config` at 
 * `autogenerateTopic` (`false`) - Whether or not the test should use an auto-generated topic name. If true, consumers and producers will all
 use the auto-generated one in preference to any defined within their config during this run.
 * `producers` : `ProducersDefinition`
-* `producers` : `ConsumersDefinition`
+* `consumers` : `ConsumersDefinition`
 
 ### ProducersDefinition
 
