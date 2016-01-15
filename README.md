@@ -24,60 +24,58 @@ See the [Users Guide] (docs/UsersGuide.md) for a description of using this tool,
 
 Example (pseudo-)JSON config (doesn't really do comments):
 
-```json
-{
-  // see TestProfileDefinition for all properties
-  "config" : {
-    // Kafka config; applies to producers and consumers
-    "bootstrap.servers" : "tcp://localhost:9092"
-  },
-  "producers" : {
-    "config" : {
-      // Kafka config; applies to all producers
-      "request.required.acks": "ackFromLeader",
-      "producer.type": "sync",
-      "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
-      "value.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
-      "batch.size": "0",
-      "timeout.ms" : "10000"
-    },
-    "instances" : [
-      {
-        // see ProducerDefinition for all properties
+    {
+      // see TestProfileDefinition for all properties
+      "config" : {
+        // Kafka config; applies to producers and consumers
+        "bootstrap.servers" : "tcp://localhost:9092"
+      },
+      "producers" : {
         "config" : {
-          // Kafka config; just for this producer
-          "timeout.ms" : "5000"
+          // Kafka config; applies to all producers
+          "request.required.acks": "ackFromLeader",
+          "producer.type": "sync",
+          "key.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
+          "value.serializer": "org.apache.kafka.common.serialization.ByteArraySerializer",
+          "batch.size": "0",
+          "timeout.ms" : "10000"
         },
-        "topic" : "foo",
-        "messagesToSend" : "1000",
-        "sendBlocking": "false",
-        "messageSize" : "100000"
-      }
-    ]
-  },
-  "consumers" : {
-    "config" : {
-        // Kafka config; applies to all consumers
-        "key.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-        "value.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-        "enable.auto.commit" : "true",
-        "auto.commit.interval.ms" : "1000",
-        "auto.offset.reset" : "earliest"
-    },
-    "instances" : [
-      {
-        // see ConsumerDefinition for all properties
+        "instances" : [
+          {
+            // see ProducerDefinition for all properties
+            "config" : {
+              // Kafka config; just for this producer
+              "timeout.ms" : "5000"
+            },
+            "topic" : "foo",
+            "messagesToSend" : "1000",
+            "sendBlocking": "false",
+            "messageSize" : "100000"
+          }
+        ]
+      },
+      "consumers" : {
         "config" : {
-          // Kafka config; just for this consumer
-          "timeout.ms" : "5000",
-          "group.id" : "foo1" // every consumer must define a unique one of these
+            // Kafka config; applies to all consumers
+            "key.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+            "value.deserializer" : "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+            "enable.auto.commit" : "true",
+            "auto.commit.interval.ms" : "1000",
+            "auto.offset.reset" : "earliest"
         },
-        "topic" : "foo"
+        "instances" : [
+          {
+            // see ConsumerDefinition for all properties
+            "config" : {
+              // Kafka config; just for this consumer
+              "timeout.ms" : "5000",
+              "group.id" : "foo1" // every consumer must define a unique one of these
+            },
+            "topic" : "foo"
+          }
+        ]
       }
-    ]
-  }
-}
-```
+    }
 
 Example YAML config:
 
