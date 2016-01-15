@@ -22,6 +22,7 @@
 
     <zookeeper-version>3.4.6</zookeeper-version>
     <log4j-version>1.2.16</log4j-version>
+    <jool-version>0.9.7</jool-version>
 
     <maven-compiler-plugin-version>3.1</maven-compiler-plugin-version>
     <maven-enforcer-plugin-version>1.1</maven-enforcer-plugin-version>
@@ -77,6 +78,12 @@
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jool</artifactId>
+      <version>${jool-version}</version>
     </dependency>
 
     <dependency>

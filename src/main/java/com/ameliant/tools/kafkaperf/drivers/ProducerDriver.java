@@ -28,12 +28,12 @@ public class ProducerDriver extends Driver {
     private final ProducerDefinition producerDefinition;
     private CountDownLatch completionLatch;
 
-    ProducerDriver(ProducerDefinition producerDefinition) {
+    public ProducerDriver(ProducerDefinition producerDefinition) {
         Validate.notNull(producerDefinition, "producerDefinition is null");
         this.producerDefinition = producerDefinition;
     }
 
-    ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch completionLatch) {
+    public ProducerDriver(ProducerDefinition producerDefinition, CountDownLatch completionLatch) {
         this(producerDefinition);
         this.completionLatch = completionLatch;
     }

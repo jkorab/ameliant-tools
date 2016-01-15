@@ -41,6 +41,10 @@ public class EmbeddedKafkaBroker extends ExternalResource {
         return brokerDefinition.getPort();
     }
 
+    public String getConnectionString() {
+        return "127.0.0.1:" + getPort();
+    }
+
     @Override
     protected void before() throws Throwable {
         logDirectory = tempDir(perTest("kafka-log"));
