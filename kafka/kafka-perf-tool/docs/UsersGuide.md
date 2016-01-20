@@ -1,4 +1,4 @@
-# Kafka Performance Test Users Guide
+# Kafka Performance Tool Users Guide
 
 This tool provides a standalone mechanism for measuring load and validate the behaviour of Apache Kafka clusters.
 Beyond simple performance measurement, it provides a way to understand Kafka through observing its behaviour from the 
@@ -12,11 +12,11 @@ when simulating the behaviours of multiple functional nodes communicating with e
 
 To run this tool execute the JAR as follows (Java 1.8 minimum):
 
-    $ java -jar kafka-perf-test.jar -c myConfig.yml
+    $ java -jar kafka-perf-tool.jar -c myConfig.yml
 
 Flags are as follows:
 
-    usage: kafka-perf-test
+    usage: kafka-perf-tool
      -c,--config <FILE>               config file that defines the test
                                       profile(s) to run
      -o,--output-format <yaml|json>   the format of the parsed config to echo
@@ -62,7 +62,7 @@ level (in a producer or a consumer) inherits and overrides the config of the lay
 configuration at the top level.
 
 All other properties are bound to field in the tool's 
-[configuration object graph] (../src/main/java/com/ameliant/tools/kafkaperf/config); the tool will complain if these 
+[configuration object graph] (../src/main/java/com/ameliant/tools/kafka/perftool/config); the tool will complain if these 
 are not correctly defined. Most fields are optional, so if is perfectly reasonable to omit them if not needed; you can 
 for example define consumers only, or producers only, or not define `config` at some level.
 
