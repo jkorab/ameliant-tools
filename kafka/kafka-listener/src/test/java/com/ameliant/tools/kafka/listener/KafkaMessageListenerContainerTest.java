@@ -67,7 +67,7 @@ public class KafkaMessageListenerContainerTest {
 
         try (KafkaMessageListenerContainer<byte[], byte[]> container = builder.build()) {
             container.init();
-            if (!latch.await(100, TimeUnit.SECONDS)) {
+            if (!latch.await(10, TimeUnit.SECONDS)) {
                 fail("Timeout expired waiting on latch");
             }
 
@@ -84,7 +84,7 @@ public class KafkaMessageListenerContainerTest {
         Properties configs = props(getConsumerConfigs());
         AtomicInteger messagesReceived = new AtomicInteger();
 
-        CountDownLatch latch = new CountDownLatch(messagesToSend);
+        CountDownLatch messagesReceivedLatch = new CountDownLatch(messagesToSend);
         CountDownLatch shutdownLatch = new CountDownLatch(1);
 
         MemoryOffsetStore offsetStore = new MemoryOffsetStore(); // shared between container instances
@@ -99,7 +99,7 @@ public class KafkaMessageListenerContainerTest {
                             shutdownLatch.countDown();
                         }
                     } finally {
-                        latch.countDown();
+                        messagesReceivedLatch.countDown();
                     }
                 }).build()) {
             container.init();
@@ -111,10 +111,11 @@ public class KafkaMessageListenerContainerTest {
                 .kafkaConfig(configs)
                 .offsetStore(offsetStore)
                 .topic(TOPIC)
-                .messageListener((key, value) -> latch.countDown()).build()) {
+                .messageListener((key, value) -> messagesReceivedLatch.countDown()).build()) {
             container.init();
-            if (!latch.await(10, TimeUnit.SECONDS)) {
-                fail("Timeout expired waiting on latch");
+            if (!messagesReceivedLatch.await(10, TimeUnit.SECONDS)) {
+                fail("Timeout expired waiting on messagesReceivedLatch, " + container.getRecordsProcessed()
+                        + " records processed from " + TOPIC);
             }
         }
     }
@@ -131,7 +132,7 @@ public class KafkaMessageListenerContainerTest {
         Map<String, Object> configs = new ConsumerConfigsBuilder()
                 .groupId("bar")
                 .bootstrapServers(broker.getConnectionString())
-                .sessionTimeoutMs(30000)
+                .sessionTimeoutMs(10000)
                 .keyDeserializer(ByteArrayDeserializer.class)
                 .valueDeserializer(ByteArrayDeserializer.class)
                 .build();

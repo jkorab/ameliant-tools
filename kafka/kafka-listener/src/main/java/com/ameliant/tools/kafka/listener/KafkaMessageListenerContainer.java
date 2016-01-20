@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 
 /**
@@ -29,6 +30,7 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
     private final OffsetStore offsetStore;
     private final String topic;
     private final BiConsumer<K, V> messageListener;
+    private final AtomicLong recordsProcessed = new AtomicLong();
 
     private BiConsumer<Tuple2<K, V>, Exception> exceptionHandler =
             (tuple, ex) -> log.error("Caught exception: {}", ex);
@@ -107,7 +109,7 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
         executorService.submit(this);
     }
 
-    final ConcurrentSkipListSet assignedTopicPartitions = new ConcurrentSkipListSet();
+    private final CopyOnWriteArraySet assignedTopicPartitions = new CopyOnWriteArraySet();
 
     @Override
     public void run() {
@@ -116,22 +118,24 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
             consumer.subscribe(Collections.singletonList(topic), new ConsumerRebalanceListener() {
                 @Override
                 public void onPartitionsRevoked(Collection<TopicPartition> topicPartitions) {
-                    /*
-                     TODO what do you do with the messages that you have just polled? Discard remainder?
-                     This looks like a corner case that cannot be satisfactorily addressed using idempotent consumption
-                     while maintaining message ordering.
-                     If you have two consumers, c1 and c2 processing from a partition [m0,m1,m2,m3], and c2
-                     gets the partition, and re-polls the same messages, you get out of order processing.
-                     (e.g. c1:m0,m2; c2:m1,m3).
-                     */
-                     // keep track of TopicPartitions that the consumer is currently assigned to
+                    // keep track of TopicPartitions that the consumer is currently assigned to, so that any messages
+                    // that have been polled can be skipped if the consumer is no longer assigned to that partition
+
+                    // There is still the slight possibility of out-of-order message processing if a message (m1) is in the
+                    // middle of being processed by the old consumer, and the new consumer picks up and processes the
+                    // next message in the partition (m2) - assuming idempotent consumption - before m1 processing has
+                    // completed. There is no way to get around this.
                     assignedTopicPartitions.removeAll(topicPartitions);
+                    topicPartitions.forEach(topicPartition -> {
+                        log.debug("Partition revoked {}:{}", topicPartition.topic(), topicPartition.partition());
+                    });
                 }
 
                 @Override
                 public void onPartitionsAssigned(Collection<TopicPartition> topicPartitions) {
                     topicPartitions.stream()
                             .forEach(topicPartition -> {
+                                log.debug("Partition assigned {}:{}", topicPartition.topic(), topicPartition.partition());
                                 Optional<Long> lastConsumed = offsetStore.getLastConsumed(topicPartition, groupId);
                                 lastConsumed.ifPresent(cursorPosition -> {
                                     log.debug("Seeking {}:{}:{} for {}",
@@ -142,9 +146,11 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
                                 assignedTopicPartitions.add(topicPartition);
                             });
                 }
-            }); // can subscribe to multiple topics
+            }); // TODO handle a consumer subscribing to multiple topics
 
             pollingLoop(consumer, groupId);
+            log.debug("Polling loop closed, shutting down consumer.");
+            workerShutdownLatch.countDown();
         }
     }
 
@@ -159,11 +165,13 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
 
     private void pollingLoop(Consumer consumer, String groupId) {
         POLLING_LOOP: while (!shuttingDown.get()) {
+
             // committed position is the last offset that was saved securely
             ConsumerRecords consumerRecords = consumer.poll(DEFAULT_POLL_TIMEOUT);
             // TODO why does polling work in increments if commit has not been called?
             Iterable<ConsumerRecord<K,V>> records = consumerRecords.records(topic);
 
+            long initialCount = recordsProcessed.get();
             RECORD_PROCESSING: for( ConsumerRecord<K,V> consumerRecord : records) {
                 if (shuttingDown.get()) {
                     break POLLING_LOOP;
@@ -175,20 +183,16 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
                 long offset = consumerRecord.offset();
                 if (!assignedTopicPartitions.contains(topicPartition)) {
                     // another consumer has been assigned to this partition since polling, skip this record
-                    log.info("Discarding polled message as no longer assigned to partition {}:{}:{}", topic, partition, offset);
+                    log.debug("Discarding polled message as no longer assigned to partition {}:{}:{}", topic, partition, offset);
                     continue RECORD_PROCESSING;
                 }
-
+                recordsProcessed.incrementAndGet();
                 K key = consumerRecord.key();
                 V value = consumerRecord.value();
                 try {
                     // TODO introduce some sort of idempotent consumption here
                     // you could end up in a situation where just after polling, the partitions have been reallocated
                     // and another node picks up the message
-
-                    /*
-                    An idempotent consumer by itself won't
-                     */
                     messageListener.accept(key, value);
 
                     offsetStore.markConsumed(topicPartition, groupId, offset);
@@ -207,8 +211,9 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
                     }
                 }
             }
-            log.debug("Worker has shut down.");
-            workerShutdownLatch.countDown();
+            if (initialCount == recordsProcessed.get()) {
+                log.debug("No records polled from topic:{}", topic);
+            }
         }
     }
 
@@ -219,5 +224,9 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
             log.warn("Timeout waiting to shut down worker thread");
         }
         executorService.shutdownNow();
+    }
+
+    public long getRecordsProcessed() {
+        return recordsProcessed.get();
     }
 }
