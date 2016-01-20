@@ -1,8 +1,6 @@
 package com.ameliant.tools.kafkaconsumer;
 
-import com.ameliant.tools.kafkaperf.config.ConsumerConfigsBuilder;
-import com.ameliant.tools.kafkaperf.config.ProducerConfigsBuilder;
-import com.ameliant.tools.kafkaperf.config.ProducerDefinition;
+import com.ameliant.tools.kafkaperf.config.*;
 import com.ameliant.tools.kafkaperf.drivers.ProducerDriver;
 import com.ameliant.tools.kafkaperf.resources.EmbeddedZooKeeper;
 import com.ameliant.tools.kafkaperf.resources.kafka.EmbeddedKafkaBroker;
@@ -16,7 +14,6 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 
 import static java.lang.String.copyValueOf;
 import static java.lang.String.format;
@@ -34,7 +31,7 @@ public class KafkaMessageListenerContainerTest {
     @Rule
     public EmbeddedKafkaBroker broker = EmbeddedKafkaBroker.builder()
             .zookeeperConnect("127.0.0.1:" + zooKeeper.getPort())
-            //.logFlushIntervalMessages(1)
+            .numPartitions(3)
             .build();
 
     @Test
@@ -48,38 +45,81 @@ public class KafkaMessageListenerContainerTest {
 
         CountDownLatch latch = new CountDownLatch(messagesToSend);
 
-        // TODO clean up API
-        BiConsumer<byte[], byte[]> messageListener = (byte[] key, byte[] value) -> {
-            try {
-                if (messagesReceived.incrementAndGet() == 500) {
-                    throw new IllegalArgumentException("Boom!");
-                }
-            } finally {
-                latch.countDown();
-            }
-        };
+        MemoryOffsetStore offsetStore = new MemoryOffsetStore();
 
-        try (KafkaMessageListenerContainer<byte[], byte[]> container = new KafkaMessageListenerContainer<>(
-                configs,
-                new MemoryOffsetStore(),
-                TOPIC,
-                messageListener)) {
-            container.setExceptionHandler((tuple, exception) -> {
-                exceptionsHandled.incrementAndGet();
-                assertTrue(exception instanceof IllegalArgumentException);
-            });
-            container.start();
-            if (!latch.await(10, TimeUnit.SECONDS)) {
+        KafkaMessageListenerContainer.Builder builder = new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
+                .kafkaConfig(configs)
+                .offsetStore(offsetStore)
+                .topic(TOPIC)
+                .messageListener((key, value) -> {
+                    try {
+                        if (messagesReceived.incrementAndGet() == 500) {
+                            throw new IllegalArgumentException("Boom!");
+                        }
+                    } finally {
+                        latch.countDown();
+                    }
+                })
+                .exceptionHandler((tuple, exception) -> {
+                    exceptionsHandled.incrementAndGet();
+                    assertTrue(exception instanceof IllegalArgumentException);
+                });
+
+        try (KafkaMessageListenerContainer<byte[], byte[]> container = builder.build()) {
+            container.init();
+            if (!latch.await(100, TimeUnit.SECONDS)) {
                 fail("Timeout expired waiting on latch");
             }
 
             assertEquals(messagesToSend, messagesReceived.get());
             assertEquals(1, exceptionsHandled.get());
         }
-
     }
 
-    // TODO add test for resumption - shutdown and restart after 500
+    @Test
+    public void testReceive_shutdownResumption() throws Exception {
+        int messagesToSend = 1000;
+        preloadTopic(TOPIC, messagesToSend);
+
+        Properties configs = props(getConsumerConfigs());
+        AtomicInteger messagesReceived = new AtomicInteger();
+
+        CountDownLatch latch = new CountDownLatch(messagesToSend);
+        CountDownLatch shutdownLatch = new CountDownLatch(1);
+
+        MemoryOffsetStore offsetStore = new MemoryOffsetStore(); // shared between container instances
+
+        try (KafkaMessageListenerContainer<byte[], byte[]> container = new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
+                .kafkaConfig(configs)
+                .offsetStore(offsetStore)
+                .topic(TOPIC)
+                .messageListener((key, value) -> {
+                    try {
+                        if (messagesReceived.incrementAndGet() == 500) {
+                            shutdownLatch.countDown();
+                        }
+                    } finally {
+                        latch.countDown();
+                    }
+                }).build()) {
+            container.init();
+            if (!shutdownLatch.await(10, TimeUnit.SECONDS)) {
+                fail("Timeout expired waiting on shutdownLatch");
+            }
+        }
+        try (KafkaMessageListenerContainer<byte[], byte[]> container = new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
+                .kafkaConfig(configs)
+                .offsetStore(offsetStore)
+                .topic(TOPIC)
+                .messageListener((key, value) -> latch.countDown()).build()) {
+            container.init();
+            if (!latch.await(10, TimeUnit.SECONDS)) {
+                fail("Timeout expired waiting on latch");
+            }
+        }
+    }
+
+    // TODO test dropping of messages during repartitioning
 
     private Properties props(Map<String, Object> map) {
         Properties properties = new Properties();
@@ -108,6 +148,7 @@ public class KafkaMessageListenerContainerTest {
         producerDefinition.setMessageSize(1024);
         producerDefinition.setMessagesToSend(messagesToSend);
         producerDefinition.setSendBlocking(true);
+        producerDefinition.setPartitioningStrategy(PartitioningStrategy.roundRobin);
 
         ProducerDriver driver = new ProducerDriver(producerDefinition);
         driver.run();

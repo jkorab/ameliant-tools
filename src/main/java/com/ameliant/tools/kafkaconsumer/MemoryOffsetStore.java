@@ -5,6 +5,7 @@ import org.apache.kafka.common.TopicPartition;
 import static org.jooq.lambda.tuple.Tuple.tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -24,11 +25,11 @@ public class MemoryOffsetStore implements OffsetStore {
     }
 
     @Override
-    public long getLastConsumed(TopicPartition topicPartition, String groupId) {
+    public Optional<Long> getLastConsumed(TopicPartition topicPartition, String groupId) {
         Validate.notNull(topicPartition, "topicPartition is null");
         Validate.notEmpty(groupId, "groupId is empty");
 
         Long lastConsumed = topicPartitionGroupOffsets.get(tuple(topicPartition, groupId));
-        return (lastConsumed == null) ? 0 : lastConsumed;
+        return (lastConsumed == null) ? Optional.<Long>empty() : Optional.of(lastConsumed);
     }
 }
