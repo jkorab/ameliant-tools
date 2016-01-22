@@ -44,7 +44,8 @@ public class KafkaMessageListenerContainerTest {
 
         MemoryOffsetStore offsetStore = new MemoryOffsetStore();
 
-        KafkaMessageListenerContainer.Builder<byte[], byte[]> builder = new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
+        KafkaMessageListenerContainer.Builder<byte[], byte[]> builder =
+                new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
                 .kafkaConfig(configs)
                 .offsetStore(offsetStore)
                 .topic(TOPIC)
