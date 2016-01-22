@@ -47,7 +47,7 @@ public class BrokerBuilder {
         return this;
     }
 
-    public TopicBuilder addTopic(String name) {
+    public TopicBuilder topic(String name) {
         return new TopicBuilder(this, name);
     }
 

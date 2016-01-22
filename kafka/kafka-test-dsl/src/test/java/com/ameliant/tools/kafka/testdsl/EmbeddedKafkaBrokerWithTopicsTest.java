@@ -16,12 +16,12 @@ public class EmbeddedKafkaBrokerWithTopicsTest {
     @Rule
     public EmbeddedKafkaBroker broker = EmbeddedKafkaBroker.builder()
             .zookeeperConnect("127.0.0.1:" + zooKeeper.getPort())
-            .addTopic("goat")
+            .topic("goat")
                 .partitions(1)
                 .replicationFactor(1)
                 .property("flush.messages", "1")
             .end()
-            .addTopic("cheese")
+            .topic("cheese")
                 .partitions(3)
             .end()
             .build();

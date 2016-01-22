@@ -20,13 +20,13 @@ public class ProducerPartitioningTest {
     @Rule
     public EmbeddedKafkaBroker broker = EmbeddedKafkaBroker.builder()
             .zookeeperConnect("127.0.0.1:" + zooKeeper.getPort())
-            .addTopic(FOO)
+            .topic(FOO)
                 .partitions(3)
             .end()
-            .addTopic(BAR)
+            .topic(BAR)
                 .partitions(1)
             .end()
-            .addTopic(BAZ)
+            .topic(BAZ)
                 .partitions(2)
             .end()
             .build();

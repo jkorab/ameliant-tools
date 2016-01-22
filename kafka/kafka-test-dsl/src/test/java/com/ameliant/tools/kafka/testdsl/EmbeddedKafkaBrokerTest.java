@@ -20,6 +20,6 @@ public class EmbeddedKafkaBrokerTest {
 
     @Test
     public void testLifecycle() {
-        Assert.assertTrue(true);
+        Assert.assertTrue(broker.getPort() > 0);
     }
 }
