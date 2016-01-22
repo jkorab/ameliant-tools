@@ -10,13 +10,12 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Rule;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static java.lang.String.format;
 
 /**
  * @author jkorab
@@ -46,7 +45,7 @@ public class ConsumerDriverTest {
         ConsumerDriver consumerDriver = createConsumerDriver(latch, topic, messageCount);
         consumerDriver.run();
 
-        latch.await(); // not really needed here
+        assertEquals(messageCount, consumerDriver.getMessagesReceived());
     }
 
     @Test

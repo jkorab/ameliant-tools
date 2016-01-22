@@ -22,12 +22,12 @@ public class ConsumerDriver extends Driver {
         this.consumerRebalanceListener = consumerRebalanceListener;
     }
 
-    ConsumerDriver(ConsumerDefinition consumerDefinition) {
+    public ConsumerDriver(ConsumerDefinition consumerDefinition) {
         Validate.notNull(consumerDefinition, "consumerDefinition is null");
         this.consumerDefinition = consumerDefinition;
     }
 
-    ConsumerDriver(ConsumerDefinition consumerDefinition, CountDownLatch completionLatch) {
+    public ConsumerDriver(ConsumerDefinition consumerDefinition, CountDownLatch completionLatch) {
         this(consumerDefinition);
         this.completionLatch = completionLatch;
     }

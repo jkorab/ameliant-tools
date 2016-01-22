@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 
 /**
+ * Container class to simplify Kafka message consumption, as well as providing only-once consumption.
  * @author jkorab
  */
 public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoCloseable {
@@ -28,12 +29,13 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
     private final Properties kafkaConfig;
     private final String groupId;
     private final OffsetStore offsetStore;
-    private final String topic;
+    private final String topic; // TODO refactor to List, Pattern
     private final BiConsumer<K, V> messageListener;
     private final AtomicLong recordsProcessed = new AtomicLong();
 
+    /** Acts as a hook for a dead-letter channel, handling exceptions thrown from the messageListener. */
     private BiConsumer<Tuple2<K, V>, Exception> exceptionHandler =
-            (tuple, ex) -> log.error("Caught exception: {}", ex);
+            (tuple, ex) -> log.error("Caught exception: {}", ex); // TODO refactor to interface
 
     /** Convenience class for fluent instantiation */
     public static class Builder<K, V> {
@@ -43,32 +45,32 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
         private BiConsumer<K, V> messageListener;
         private BiConsumer<Tuple2<K, V>, Exception> exceptionHandler;
 
-        public Builder kafkaConfig(Properties kafkaConfig) {
+        public Builder<K,V> kafkaConfig(Properties kafkaConfig) {
             this.kafkaConfig = kafkaConfig;
             return this;
         }
 
-        public Builder offsetStore(OffsetStore offsetStore) {
+        public Builder<K,V> offsetStore(OffsetStore offsetStore) {
             this.offsetStore = offsetStore;
             return this;
         }
 
-        public Builder topic(String topic) {
+        public Builder<K,V> topic(String topic) {
             this.topic = topic;
             return this;
         }
 
-        public Builder messageListener(BiConsumer<K, V> messageListener) {
+        public Builder<K,V> messageListener(BiConsumer<K, V> messageListener) {
             this.messageListener = messageListener;
             return this;
         }
 
-        public Builder exceptionHandler(BiConsumer<Tuple2<K, V>, Exception> exceptionHandler) {
+        public Builder<K,V> exceptionHandler(BiConsumer<Tuple2<K, V>, Exception> exceptionHandler) {
             this.exceptionHandler = exceptionHandler;
             return this;
         }
 
-        public KafkaMessageListenerContainer build() {
+        public KafkaMessageListenerContainer<K,V> build() {
             KafkaMessageListenerContainer<K, V> container =
                     new KafkaMessageListenerContainer<>(kafkaConfig, offsetStore, topic, messageListener);
             if (exceptionHandler != null) {
@@ -105,6 +107,7 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final CountDownLatch workerShutdownLatch = new CountDownLatch(1);
+
     public void init() {
         executorService.submit(this);
     }
@@ -114,7 +117,9 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
     @Override
     public void run() {
         try (Consumer consumer = createConsumer(kafkaConfig)) {
-            final String groupId = "something";
+            final String groupId = kafkaConfig.getProperty(ConsumerConfig.GROUP_ID_CONFIG);
+            log.info("Consuming as group {}", groupId);
+
             consumer.subscribe(Collections.singletonList(topic), new ConsumerRebalanceListener() {
                 @Override
                 public void onPartitionsRevoked(Collection<TopicPartition> topicPartitions) {
@@ -149,7 +154,7 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
             }); // TODO handle a consumer subscribing to multiple topics
 
             pollingLoop(consumer, groupId);
-            log.debug("Polling loop closed, shutting down consumer.");
+            log.debug("Polling loop closed, shutting down consumer. {} records processed.", recordsProcessed.get());
             workerShutdownLatch.countDown();
         }
     }
@@ -190,7 +195,7 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
                 K key = consumerRecord.key();
                 V value = consumerRecord.value();
                 try {
-                    // TODO introduce some sort of idempotent consumption here
+                    // TODO introduce idempotent consumption here
                     // you could end up in a situation where just after polling, the partitions have been reallocated
                     // and another node picks up the message
                     messageListener.accept(key, value);
@@ -198,6 +203,8 @@ public class KafkaMessageListenerContainer<K, V> implements Runnable, AutoClosea
                     offsetStore.markConsumed(topicPartition, groupId, offset);
                     // doesn't matter if the system crashes at this point, as the offsetStore will be used to seek
                     // to offset at next startup
+
+                    // the consumer has an associated groupId, so it doesn't need to pass it to the commit operation
                     consumer.commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(offset)));
                 } catch (Exception ex) {
                     try {

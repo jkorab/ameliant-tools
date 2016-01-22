@@ -35,6 +35,32 @@ public class KafkaMessageListenerContainerTest {
             .build();
 
     @Test
+    public void testReceive() throws Exception {
+        int messagesToSend = 100;
+        preloadTopic(TOPIC, messagesToSend);
+
+        Properties configs = props(getConsumerConfigs());
+        final CountDownLatch latch = new CountDownLatch(messagesToSend);
+
+        MemoryOffsetStore offsetStore = new MemoryOffsetStore();
+
+        KafkaMessageListenerContainer.Builder<byte[], byte[]> builder = new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
+                .kafkaConfig(configs)
+                .offsetStore(offsetStore)
+                .topic(TOPIC)
+                .messageListener((key, value) -> latch.countDown());
+
+        try (KafkaMessageListenerContainer<byte[], byte[]> container = builder.build()) {
+            container.init();
+            if (!latch.await(20, TimeUnit.SECONDS)) {
+                fail("Timeout expired waiting on latch");
+            }
+
+            assertEquals(messagesToSend, container.getRecordsProcessed());
+        }
+    }
+
+    @Test
     public void testReceive_errorHandling() throws Exception {
         int messagesToSend = 1000;
         preloadTopic(TOPIC, messagesToSend);
@@ -47,7 +73,7 @@ public class KafkaMessageListenerContainerTest {
 
         MemoryOffsetStore offsetStore = new MemoryOffsetStore();
 
-        KafkaMessageListenerContainer.Builder builder = new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
+        KafkaMessageListenerContainer.Builder<byte[], byte[]> builder = new KafkaMessageListenerContainer.Builder<byte[], byte[]>()
                 .kafkaConfig(configs)
                 .offsetStore(offsetStore)
                 .topic(TOPIC)
@@ -132,13 +158,13 @@ public class KafkaMessageListenerContainerTest {
         Map<String, Object> configs = new ConsumerConfigsBuilder()
                 .groupId("bar")
                 .bootstrapServers(broker.getConnectionString())
+                .autoOffsetReset(ConsumerConfigsBuilder.OffsetReset.earliest)
                 .sessionTimeoutMs(10000)
                 .keyDeserializer(ByteArrayDeserializer.class)
                 .valueDeserializer(ByteArrayDeserializer.class)
                 .build();
         return configs;
     }
-
 
     private void preloadTopic(String topic, int messagesToSend) {
         Map<String, Object> producerConfigs = getProducerConfigs();
